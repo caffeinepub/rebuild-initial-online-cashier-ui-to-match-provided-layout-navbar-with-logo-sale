@@ -14,12 +14,14 @@ export class ExternalBlob {
     static fromBytes(blob: Uint8Array<ArrayBuffer>): ExternalBlob;
     withUploadProgress(onProgress: (percentage: number) => void): ExternalBlob;
 }
-export interface Product {
-    id: bigint;
+export interface UserProfile {
     name: string;
-    size: string;
-    salePrice: bigint;
-    image: ExternalBlob;
+}
+export type Time = bigint;
+export interface DashboardSummary {
+    paymentMethodTotals: PaymentMethodTotals;
+    todayRevenue: bigint;
+    totalQuantitySold: bigint;
 }
 export interface InventoryItem {
     id: bigint;
@@ -37,18 +39,28 @@ export interface PaymentMethodTotals {
     dana: bigint;
     qris: bigint;
 }
-export interface DashboardSummary {
-    paymentMethodTotals: PaymentMethodTotals;
-    todayRevenue: bigint;
-    totalQuantitySold: bigint;
-}
-export interface UserProfile {
-    name: string;
+export interface SaleRecord {
+    id: bigint;
+    paymentMethod: PaymentMethod;
+    totalTax: bigint;
+    timestamp: Time;
+    items: Array<SaleItem>;
+    amount: bigint;
+    totalQuantity: bigint;
 }
 export interface SaleItem {
+    cogs: bigint;
     productId: bigint;
+    productName: string;
     quantity: bigint;
     unitPrice: bigint;
+}
+export interface Product {
+    id: bigint;
+    name: string;
+    size: string;
+    salePrice: bigint;
+    image: ExternalBlob;
 }
 export enum PaymentMethod {
     trf = "trf",
@@ -66,6 +78,7 @@ export interface backendInterface {
     addProduct(name: string, size: string, salePrice: bigint, image: ExternalBlob): Promise<bigint>;
     adjustInventoryStock(itemId: bigint, quantity: bigint, isAddition: boolean): Promise<boolean>;
     assignCallerUserRole(user: Principal, role: UserRole): Promise<void>;
+    deleteSale(id: bigint): Promise<boolean>;
     fetchDashboardSummary(): Promise<DashboardSummary>;
     getCallerUserProfile(): Promise<UserProfile | null>;
     getCallerUserRole(): Promise<UserRole>;
@@ -73,7 +86,9 @@ export interface backendInterface {
     isCallerAdmin(): Promise<boolean>;
     listInventoryItems(): Promise<Array<InventoryItem>>;
     listProducts(): Promise<Array<Product>>;
-    recordSale(items: Array<SaleItem>, paymentMethod: PaymentMethod): Promise<bigint>;
+    querySales(fromTimestamp: Time, toTimestamp: Time): Promise<Array<SaleRecord>>;
+    recordSale(items: Array<SaleItem>, paymentMethod: PaymentMethod, totalTax: bigint): Promise<bigint>;
     saveCallerUserProfile(profile: UserProfile): Promise<void>;
     updateInventoryItem(id: bigint, itemName: string, category: string, size: string, unit: string, initialStock: bigint, reject: bigint, finalStock: bigint): Promise<boolean>;
+    updateSale(id: bigint, items: Array<SaleItem>, paymentMethod: PaymentMethod, totalTax: bigint): Promise<boolean>;
 }

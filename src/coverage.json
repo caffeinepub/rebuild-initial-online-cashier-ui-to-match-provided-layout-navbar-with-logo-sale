@@ -1,61 +1,121 @@
 {
   "kind": "coverage_report",
   "version": "1.0",
-  "generatedAt": "2026-02-15T11:02:01.070Z",
+  "generatedAt": "2026-02-15T13:53:41.379Z",
   "sources": {
     "buildRequest": true,
     "implementationPlan": true
   },
   "requirements": {
-    "total": 3,
-    "implemented": 1,
+    "total": 7,
+    "implemented": 5,
     "items": [
       {
-        "id": "REQ-69",
-        "summary": "Update `frontend/src/hooks/useActor.ts` so actor creation never fails or blocks app data queries when the `actor._initializeAccessControlWithSecret(adminToken)` call fails (e.g., missing/empty/invalid token, method not present, or canister rejects). The hook must still return a usable authenticated actor (or anonymous actor when logged out) even if access-control initialization fails.",
-        "status": "missing",
+        "id": "REQ-72",
+        "summary": "Add a new Sales Report view that is opened when the user clicks Navbar > Reports (Laporan) > \"Laporan Penjualan\"; this view must render a dedicated page component (e.g., SalesReportPage) inside the existing App.tsx view-switching (no React Router).",
+        "status": "implemented",
         "plannedFiles": [
-          "frontend/src/hooks/useActor.ts"
+          "frontend/src/App.tsx",
+          "frontend/src/components/Navbar.tsx",
+          "frontend/src/components/SalesReportPage.tsx"
         ],
-        "matchedFiles": []
+        "matchedFiles": [
+          "frontend/src/App.tsx",
+          "frontend/src/components/Navbar.tsx",
+          "frontend/src/components/SalesReportPage.tsx"
+        ]
       },
       {
-        "id": "REQ-70",
-        "summary": "Ensure the backend canister does not trap or reject during `_initializeAccessControlWithSecret` in a way that prevents normal application use. If access-control mixins are present, adjust `backend/main.mo` so `_initializeAccessControlWithSecret` is safe to call with an empty/invalid secret and always returns a non-trapping result, and ensure core APIs (dashboard summary, product list, inventory list) remain usable without any prior successful access-control initialization.",
+        "id": "REQ-73",
+        "summary": "Implement the Sales Report page UI to display a read/write table of saved sales transactions (sales history) with these columns in order: Transaction ID, Transaction date & time, Payment method, Product, Quantity, COGS (HPP), Sale price, Line total (Quantity × Sale price).",
+        "status": "implemented",
+        "plannedFiles": [
+          "frontend/src/components/SalesReportPage.tsx",
+          "frontend/src/utils/salesFormat.ts"
+        ],
+        "matchedFiles": [
+          "frontend/src/components/SalesReportPage.tsx",
+          "frontend/src/utils/salesFormat.ts"
+        ]
+      },
+      {
+        "id": "REQ-74",
+        "summary": "Add a date-range filter on the Sales Report page that filters the displayed sales history by transaction timestamp; the filter must cover day/month/year via a single date range (from/to).",
+        "status": "implemented",
+        "plannedFiles": [
+          "frontend/src/components/SalesReportPage.tsx",
+          "frontend/src/hooks/useSalesReport.ts"
+        ],
+        "matchedFiles": [
+          "frontend/src/components/SalesReportPage.tsx",
+          "frontend/src/hooks/useSalesReport.ts"
+        ]
+      },
+      {
+        "id": "REQ-75",
+        "summary": "Add per-transaction actions on the Sales Report page to Edit and Delete a saved sales transaction; both actions must persist to the backend and refresh the report list after success.",
+        "status": "implemented",
+        "plannedFiles": [
+          "frontend/src/hooks/useSalesMutations.ts",
+          "frontend/src/components/EditSaleModal.tsx",
+          "frontend/src/components/SalesReportPage.tsx"
+        ],
+        "matchedFiles": [
+          "frontend/src/hooks/useSalesMutations.ts",
+          "frontend/src/components/EditSaleModal.tsx",
+          "frontend/src/components/SalesReportPage.tsx"
+        ]
+      },
+      {
+        "id": "REQ-76",
+        "summary": "Add backend canister APIs and data support needed for Sales Report to load, filter, edit, and delete sales history, including exposing a list/query method that supports date-range filtering by timestamp.",
         "status": "unknown",
         "plannedFiles": [],
         "matchedFiles": []
       },
       {
-        "id": "REQ-71",
-        "summary": "Improve the frontend error surface for the specific failure mode where the actor is unavailable due to initialization problems: update the relevant query hooks/components to ensure errors originating from \"Actor not available\" are reported as a technical loading error (not as an authentication-required message) and always offer a retry that re-attempts actor initialization and the failed query.",
+        "id": "REQ-77",
+        "summary": "Ensure the backend sales record data includes all fields required by the Sales Report table (including COGS/HPP and sale price at time of sale) so the report does not depend on current Product data for historical accuracy.",
+        "status": "unknown",
+        "plannedFiles": [],
+        "matchedFiles": []
+      },
+      {
+        "id": "REQ-78",
+        "summary": "Add an \"Export to Excel (.xls)\" action on the Sales Report page that downloads the currently filtered sales report data into an .xls file.",
         "status": "implemented",
         "plannedFiles": [
-          "frontend/src/components/QueryErrorState.tsx",
-          "frontend/src/hooks/useActor.ts",
-          "frontend/src/components/Dashboard.tsx",
-          "frontend/src/components/ProductsPage.tsx",
-          "frontend/src/components/InventoryPage.tsx"
+          "frontend/src/utils/exportToXls.ts",
+          "frontend/src/components/SalesReportPage.tsx"
         ],
         "matchedFiles": [
-          "frontend/src/components/QueryErrorState.tsx",
-          "frontend/src/components/Dashboard.tsx",
-          "frontend/src/components/ProductsPage.tsx",
-          "frontend/src/components/InventoryPage.tsx"
+          "frontend/src/utils/exportToXls.ts",
+          "frontend/src/components/SalesReportPage.tsx"
         ]
       }
     ]
   },
   "changedFiles": [
     "backend/main.mo",
+    "backend/migration.mo",
     "build-request.json",
     "feature_evidence.json",
     "frontend-file-summaries.txt",
     "frontend-implementation-plan.json",
-    "frontend/src/components/Dashboard.tsx",
-    "frontend/src/components/InventoryPage.tsx",
-    "frontend/src/components/ProductsPage.tsx",
-    "frontend/src/components/QueryErrorState.tsx",
+    "frontend/src/App.tsx",
+    "frontend/src/backend.d.ts",
+    "frontend/src/backend.ts",
+    "frontend/src/components/EditSaleModal.tsx",
+    "frontend/src/components/Navbar.tsx",
+    "frontend/src/components/SalesReportPage.tsx",
+    "frontend/src/components/TransactionPage.tsx",
+    "frontend/src/declarations/backend.did.d.ts",
+    "frontend/src/declarations/backend.did.js",
+    "frontend/src/hooks/useRecordSale.ts",
+    "frontend/src/hooks/useSalesMutations.ts",
+    "frontend/src/hooks/useSalesReport.ts",
+    "frontend/src/utils/exportToXls.ts",
+    "frontend/src/utils/salesFormat.ts",
     "project_state.json",
     "scratch/component-selection.json",
     "spec.md",

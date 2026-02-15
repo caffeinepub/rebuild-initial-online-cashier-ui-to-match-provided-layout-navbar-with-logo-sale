@@ -44,10 +44,22 @@ export interface Product {
   'image' : ExternalBlob,
 }
 export interface SaleItem {
+  'cogs' : bigint,
   'productId' : bigint,
+  'productName' : string,
   'quantity' : bigint,
   'unitPrice' : bigint,
 }
+export interface SaleRecord {
+  'id' : bigint,
+  'paymentMethod' : PaymentMethod,
+  'totalTax' : bigint,
+  'timestamp' : Time,
+  'items' : Array<SaleItem>,
+  'amount' : bigint,
+  'totalQuantity' : bigint,
+}
+export type Time = bigint;
 export interface UserProfile { 'name' : string }
 export type UserRole = { 'admin' : null } |
   { 'user' : null } |
@@ -87,6 +99,7 @@ export interface _SERVICE {
   'addProduct' : ActorMethod<[string, string, bigint, ExternalBlob], bigint>,
   'adjustInventoryStock' : ActorMethod<[bigint, bigint, boolean], boolean>,
   'assignCallerUserRole' : ActorMethod<[Principal, UserRole], undefined>,
+  'deleteSale' : ActorMethod<[bigint], boolean>,
   'fetchDashboardSummary' : ActorMethod<[], DashboardSummary>,
   'getCallerUserProfile' : ActorMethod<[], [] | [UserProfile]>,
   'getCallerUserRole' : ActorMethod<[], UserRole>,
@@ -94,10 +107,15 @@ export interface _SERVICE {
   'isCallerAdmin' : ActorMethod<[], boolean>,
   'listInventoryItems' : ActorMethod<[], Array<InventoryItem>>,
   'listProducts' : ActorMethod<[], Array<Product>>,
-  'recordSale' : ActorMethod<[Array<SaleItem>, PaymentMethod], bigint>,
+  'querySales' : ActorMethod<[Time, Time], Array<SaleRecord>>,
+  'recordSale' : ActorMethod<[Array<SaleItem>, PaymentMethod, bigint], bigint>,
   'saveCallerUserProfile' : ActorMethod<[UserProfile], undefined>,
   'updateInventoryItem' : ActorMethod<
     [bigint, string, string, string, string, bigint, bigint, bigint],
+    boolean
+  >,
+  'updateSale' : ActorMethod<
+    [bigint, Array<SaleItem>, PaymentMethod, bigint],
     boolean
   >,
 }

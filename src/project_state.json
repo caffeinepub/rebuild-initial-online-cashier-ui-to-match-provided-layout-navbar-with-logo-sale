@@ -1,7 +1,7 @@
 {
   "schemaVersion": "1.0.0",
-  "projectStateVersion": 43,
-  "summary": "Kasir Online: rebuild UI; navigasi Produk + form Tambah Produk; seluruh bahasa Indonesia; perbaikan simpan produk; modul Inventori aktif dengan halaman Inventori + form Tambah Inventori + simpan; fitur penyesuaian stok inventori (Tambah/Kurangi) dan edit item dari daftar; menu Transaksi aktif dengan perubahan: pemilihan produk tidak pakai dropdown melainkan galeri produk bergambar seperti halaman Produk, klik produk membuka input quantity; transaksi harus bisa disimpan, diedit penuh, dihapus, dan diexport ke Excel sesuai format yang diberikan; dashboard otomatis ter-update saat terjadi penjualan; serta hapus seluruh pengecekan/otorisasi role admin di semua menu/fitur agar semua user bisa menjalankan operasi yang diperlukan. Tambahan scope: menu Laporan perlu memiliki submenu (Laporan Penjualan, Laporan Absensi, Laporan Inventori) dan Laporan Penjualan perlu export ke Excel mengikuti format yang akan diberikan.",
+  "projectStateVersion": 45,
+  "summary": "Kasir Online: rebuild UI; navigasi Produk + form Tambah Produk; seluruh bahasa Indonesia; perbaikan simpan produk; modul Inventori aktif dengan halaman Inventori + form Tambah Inventori + simpan; fitur penyesuaian stok inventori (Tambah/Kurangi) dan edit item dari daftar; menu Transaksi aktif dengan perubahan: pemilihan produk tidak pakai dropdown melainkan galeri produk bergambar seperti halaman Produk, klik produk membuka input quantity; transaksi harus bisa disimpan, diedit penuh, dihapus, dan diexport ke Excel sesuai format yang diberikan; dashboard otomatis ter-update saat terjadi penjualan; serta hapus seluruh pengecekan/otorisasi role admin di semua menu/fitur agar semua user bisa menjalankan operasi yang diperlukan. Tambahan scope: menu Laporan memiliki submenu dan Laporan Penjualan berisi riwayat transaksi yang bisa diedit & dihapus, memiliki filter tanggal (range mencakup bulan/tahun), menampilkan kolom (No ID transaksi, Tanggal & jam transaksi, Metode pembayaran, Produk, Quantity, HPP, Harga Jual, Harga Total=Qty*Harga Jual), serta tombol export ke Excel format .xls.",
   "architectural_notes": [
     "Menu 'Produk' kini perlu routing/navigasi ke halaman Produk (menu lainnya tetap pasif).",
     "Form Tambah Produk membutuhkan komponen upload gambar dengan rasio 1:1 serta container form yang mendukung scroll.",
@@ -26,7 +26,7 @@
     "Transaksi saat ini belum bisa disimpan (save transaksi gagal), sehingga transaksi tidak muncul di halaman Transaksi.",
     "Gagal memuat Dashboard, Produk, Inventori, dan Transaksi pada versi terbaru (kemungkinan regresi fetch/query, actor init, atau error deployment/build)."
   ],
-  "isFixRequest": true,
+  "isFixRequest": false,
   "existing_features": [
     {
       "id": "feature-rebuild-the-main-app-shell-to-match-the-provided-reference-layout-a-light-white-top-area-with-left-the-uploaded-natea-fresh-logo-and-right-of-logo-the-two-line-title-text-exactly-program-kasir-online-terpadu-and-subtitle-manajemen-usaha-natea-fresh",
@@ -419,6 +419,46 @@
         "REQ-71"
       ],
       "version": 1
+    },
+    {
+      "id": "feature-add-a-new-sales-report-view-that-is-opened-when-the-user-clicks-navbar-reports-laporan-laporan-penjualan-this-view-must-render-a-dedicated-page-component-e-g-salesreportpage-inside-the-existing-app-tsx-view-switching-no-react-router",
+      "title": "Add a new Sales Report view that is opened when the user clicks Navbar > Reports (Laporan) > \"Laporan Penjualan\"; this view must render a dedicated page component (e.g., SalesReportPage) inside the existing App.tsx view-switching (no React Router).",
+      "reqIds": [
+        "REQ-72"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-implement-the-sales-report-page-ui-to-display-a-read-write-table-of-saved-sales-transactions-sales-history-with-these-columns-in-order-transaction-id-transaction-date-time-payment-method-product-quantity-cogs-hpp-sale-price-line-total-quantity-sale-price",
+      "title": "Implement the Sales Report page UI to display a read/write table of saved sales transactions (sales history) with these columns in order: Transaction ID, Transaction date & time, Payment method, Product, Quantity, COGS (HPP), Sale price, Line total (Quantity × Sale price).",
+      "reqIds": [
+        "REQ-73"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-add-a-date-range-filter-on-the-sales-report-page-that-filters-the-displayed-sales-history-by-transaction-timestamp-the-filter-must-cover-day-month-year-via-a-single-date-range-from-to",
+      "title": "Add a date-range filter on the Sales Report page that filters the displayed sales history by transaction timestamp; the filter must cover day/month/year via a single date range (from/to).",
+      "reqIds": [
+        "REQ-74"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-add-per-transaction-actions-on-the-sales-report-page-to-edit-and-delete-a-saved-sales-transaction-both-actions-must-persist-to-the-backend-and-refresh-the-report-list-after-success",
+      "title": "Add per-transaction actions on the Sales Report page to Edit and Delete a saved sales transaction; both actions must persist to the backend and refresh the report list after success.",
+      "reqIds": [
+        "REQ-75"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-add-an-export-to-excel-xls-action-on-the-sales-report-page-that-downloads-the-currently-filtered-sales-report-data-into-an-xls-file",
+      "title": "Add an \"Export to Excel (.xls)\" action on the Sales Report page that downloads the currently filtered sales report data into an .xls file.",
+      "reqIds": [
+        "REQ-78"
+      ],
+      "version": 1
     }
   ],
   "new_feature_requests": [
@@ -781,6 +821,28 @@
       "summary": "Ensure the backend canister does not trap or reject during `_initializeAccessControlWithSecret` in a way that prevents normal application use. If access-control mixins are present, adjust `backend/main.mo` so `_initializeAccessControlWithSecret` is safe to call with an empty/invalid secret and always returns a non-trapping result, and ensure core APIs (dashboard summary, product list, inventory list) remain usable without any prior successful access-control initialization.",
       "reqIds": [
         "REQ-70"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-65",
+      "summary": "Submenu Laporan Penjualan harus menampilkan riwayat transaksi penjualan dalam tabel dengan kolom: No ID transaksi, Tanggal & jam transaksi, Metode pembayaran, Produk, Quantity, HPP, Harga Jual, Harga Total (Quantity*Harga Jual); transaksi pada laporan bisa diedit & dihapus; sediakan filter tanggal (range yang mencakup bulan/tahun) serta tombol export ke Excel format .xls.",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-70",
+      "summary": "Add backend canister APIs and data support needed for Sales Report to load, filter, edit, and delete sales history, including exposing a list/query method that supports date-range filtering by timestamp.",
+      "reqIds": [
+        "REQ-76"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-71",
+      "summary": "Ensure the backend sales record data includes all fields required by the Sales Report table (including COGS/HPP and sale price at time of sale) so the report does not depend on current Product data for historical accuracy.",
+      "reqIds": [
+        "REQ-77"
       ],
       "status": "pending"
     }

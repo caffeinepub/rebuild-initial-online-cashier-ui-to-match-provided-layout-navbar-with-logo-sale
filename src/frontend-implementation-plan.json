@@ -1,57 +1,120 @@
 {
   "kind": "implementation_plan",
   "version": "1.0",
-  "title": "Make actor access-control initialization non-blocking to prevent Dashboard/Products/Inventory load failures (v20)",
+  "title": "Sales Report view with sales history table, filters, edit/delete, and Excel export",
   "requirements": [
     {
-      "id": "REQ-69",
-      "summary": "Make useActor return a usable actor even if access-control initialization fails, is missing, or rejects, without putting the actor query into an error state.",
+      "id": "REQ-72",
+      "summary": "Add a Sales Report view wired to Navbar > Reports (Laporan) > Laporan Penjualan using existing App.tsx view-switching (no React Router).",
       "acceptanceCriteria": [
-        "When the user is authenticated, Dashboard/Products/Inventory queries can execute even if `caffeineAdminToken` is missing or empty.",
-        "A failure in `_initializeAccessControlWithSecret` does not cause the actor React Query (`ACTOR_QUERY_KEY`) to end in an error state.",
-        "If `_initializeAccessControlWithSecret` fails, the app logs the error to console (for debugging) but continues with a working actor instance."
+        "Clicking the \"Laporan Penjualan\" submenu item changes the main content area to a Sales Report page (instead of only logging to console).",
+        "Existing views (Dashboard/Products/Inventory/Transactions) continue to work and remain selectable via the navbar."
       ],
       "file_operations": [
         {
-          "path": "frontend/src/hooks/useActor.ts",
+          "path": "frontend/src/App.tsx",
           "operation": "modify",
-          "description": "Update actor creation so access-control initialization (from the authorization component) is best-effort and non-blocking: return the authenticated/anonymous actor immediately, guard for missing `_initializeAccessControlWithSecret`, skip or safely attempt when `caffeineAdminToken` is empty, and wrap any initialization attempt in try/catch with console logging so the actor query never rejects. Verify the component's usage instructions before implementing."
+          "description": "Extend the internal View union to include a Sales Report view key (e.g., 'salesReport') and render a dedicated SalesReportPage component in the existing conditional view switch (no React Router)."
+        },
+        {
+          "path": "frontend/src/components/Navbar.tsx",
+          "operation": "modify",
+          "description": "Update the Reports (Laporan) dropdown so clicking the \"Laporan Penjualan\" item calls onViewChange with the Sales Report view key (and closes the dropdown), replacing the current console.log placeholder."
+        },
+        {
+          "path": "frontend/src/components/SalesReportPage.tsx",
+          "operation": "create",
+          "description": "Create the dedicated SalesReportPage page component that will be mounted by App.tsx when the Sales Report view is selected."
         }
       ]
     },
     {
-      "id": "REQ-71",
-      "summary": "Ensure 'Actor not available' failures show technical loading errors (not auth-required messaging) and provide a retry that re-attempts actor initialization plus the failed query.",
+      "id": "REQ-73",
+      "summary": "Implement Sales Report page UI showing a read/write sales history table with the specified Indonesian labels and per-line-item representation.",
       "acceptanceCriteria": [
-        "If a query fails due to actor initialization issues, the UI shows the existing English failure titles/messages (e.g., \"Failed to load dashboard\") and a working Retry button.",
-        "For authenticated users, the UI must not show \"You need to log in to access this data.\" unless the failure is actually due to being unauthenticated.",
-        "Retry re-runs the underlying React Query fetch and succeeds once the actor becomes available."
+        "The Sales Report page shows a table with the specified columns and renders one row per sold line-item (or an equivalent representation that still displays per-product quantity/price/line-total).",
+        "The UI labels on the page remain Indonesian (e.g., \"Laporan Penjualan\", \"Metode Pembayaran\", \"Tanggal & Jam\", \"Harga Total\").",
+        "Line total is calculated as quantity × sale price and matches the displayed values."
       ],
       "file_operations": [
         {
-          "path": "frontend/src/components/QueryErrorState.tsx",
+          "path": "frontend/src/components/SalesReportPage.tsx",
           "operation": "modify",
-          "description": "Refine error classification so 'Actor not available' / 'actor not ready' / 'actor belum siap' is treated as a technical initialization/loading issue (never mapped to the authentication-required message), while preserving the existing English error titles/messages passed by callers and always rendering a working Retry button."
+          "description": "Build the Sales Report UI: fetch real SaleRecord data, flatten to line-item rows, render the table with columns (ID Transaksi, Tanggal & Jam, Metode Pembayaran, Produk, Qty, HPP, Harga Jual, Harga Total), and compute Harga Total = Qty × Harga Jual. Use shadcn-ui (e.g., Card/Button/Inputs/Table) where appropriate. Verify the component's usage instructions before implementing."
         },
         {
-          "path": "frontend/src/hooks/useActor.ts",
+          "path": "frontend/src/utils/salesFormat.ts",
+          "operation": "create",
+          "description": "Add formatting helpers for Sales Report (e.g., converting backend Time bigint to JS Date, Indonesian date/time formatting, currency formatting, and line-total computation) to keep UI logic consistent."
+        }
+      ]
+    },
+    {
+      "id": "REQ-74",
+      "summary": "Add a from/to date-range filter on Sales Report that filters displayed rows by transaction timestamp and supports clearing to show all history.",
+      "acceptanceCriteria": [
+        "The Sales Report page provides a from/to date range filter.",
+        "Applying the filter updates the table to only include transactions within the selected date range.",
+        "Clearing the filter returns the table to showing all available history."
+      ],
+      "file_operations": [
+        {
+          "path": "frontend/src/components/SalesReportPage.tsx",
           "operation": "modify",
-          "description": "Expose a stable actor re-initialization trigger (e.g., a refetch function and/or query key helper for the actor React Query) so UI Retry actions can explicitly re-attempt actor initialization before re-running dependent queries. (No backend changes.)"
+          "description": "Add from/to date inputs and filter state. Convert selected dates to backend Time (bigint) for querying and/or client-side filtering, and provide a clear/reset action to return to the unfiltered list. Use shadcn-ui Input/Button components as needed. Verify the component's usage instructions before implementing."
         },
         {
-          "path": "frontend/src/components/Dashboard.tsx",
-          "operation": "modify",
-          "description": "Wire Retry to re-attempt actor initialization first (via useActor-provided refetch/trigger) and then re-run the dashboard summary query refetch; ensure the existing English error title/message are shown for actor initialization failures."
+          "path": "frontend/src/hooks/useSalesReport.ts",
+          "operation": "create",
+          "description": "Create React Query hooks to load sales history from the backend via the actor using a date-range (from/to) and to support refetching when the filter changes; keep query keys stable and compatible with existing query invalidation patterns."
+        }
+      ]
+    },
+    {
+      "id": "REQ-75",
+      "summary": "Add Edit and Delete actions per transaction in Sales Report, persisting changes to the backend, refreshing the list on success, and showing clear errors on failure.",
+      "acceptanceCriteria": [
+        "Each transaction entry in the report has an Edit action and a Delete action.",
+        "Deleting a transaction removes it from the backend and it no longer appears after the list refreshes.",
+        "Editing a transaction updates the backend record and the report reflects the updated values after success.",
+        "On backend failure, the page shows a clear error message and does not silently succeed."
+      ],
+      "file_operations": [
+        {
+          "path": "frontend/src/hooks/useSalesMutations.ts",
+          "operation": "create",
+          "description": "Add mutation hooks for updating and deleting a sale via the actor (updateSale/deleteSale), including React Query invalidation for the Sales Report query so the list refreshes after success."
         },
         {
-          "path": "frontend/src/components/ProductsPage.tsx",
-          "operation": "modify",
-          "description": "Wire Retry to re-attempt actor initialization first (via useActor-provided refetch/trigger) and then re-run the products query refetch; ensure the existing English error title/message are shown for actor initialization failures."
+          "path": "frontend/src/components/EditSaleModal.tsx",
+          "operation": "create",
+          "description": "Create an EditSaleModal to edit a saved sale (at minimum payment method and line items quantities/prices as required by the report), validate inputs, and call the update mutation; use shadcn-ui Dialog/Form controls as needed. Verify the component's usage instructions before implementing."
         },
         {
-          "path": "frontend/src/components/InventoryPage.tsx",
+          "path": "frontend/src/components/SalesReportPage.tsx",
           "operation": "modify",
-          "description": "Wire Retry to re-attempt actor initialization first (via useActor-provided refetch/trigger) and then re-run the inventory query refetch; ensure the existing English error title/message are shown for actor initialization failures."
+          "description": "Add an Actions column (or per-transaction grouped actions) providing Edit and Delete. Wire Edit to open EditSaleModal for the selected transaction and wire Delete to a confirmation flow, call the delete mutation, refetch/invalidate on success, and show a visible error state/message on failures (reuse QueryErrorState and/or Alert components). Verify the component's usage instructions before implementing."
+        }
+      ]
+    },
+    {
+      "id": "REQ-78",
+      "summary": "Add an Export to Excel (.xls) action that downloads the currently filtered Sales Report data.",
+      "acceptanceCriteria": [
+        "The Sales Report page includes an export button for Excel.",
+        "Clicking export downloads a file with the .xls extension.",
+        "The exported content reflects the currently filtered data shown on screen (date-range filter applied)."
+      ],
+      "file_operations": [
+        {
+          "path": "frontend/src/utils/exportToXls.ts",
+          "operation": "create",
+          "description": "Implement a frontend-only .xls export utility that converts the currently displayed (filtered) Sales Report rows into an Excel-compatible download (e.g., HTML table-based XLS) and triggers a file download with the .xls extension."
+        },
+        {
+          "path": "frontend/src/components/SalesReportPage.tsx",
+          "operation": "modify",
+          "description": "Add an \"Export to Excel (.xls)\" button that uses the current filtered dataset (the same rows shown in the table) and calls the export utility to download the file."
         }
       ]
     }

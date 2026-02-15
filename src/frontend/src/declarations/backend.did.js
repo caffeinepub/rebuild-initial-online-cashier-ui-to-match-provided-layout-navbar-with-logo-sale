@@ -54,16 +54,28 @@ export const Product = IDL.Record({
   'salePrice' : IDL.Nat,
   'image' : ExternalBlob,
 });
-export const SaleItem = IDL.Record({
-  'productId' : IDL.Nat,
-  'quantity' : IDL.Nat,
-  'unitPrice' : IDL.Nat,
-});
+export const Time = IDL.Int;
 export const PaymentMethod = IDL.Variant({
   'trf' : IDL.Null,
   'tunai' : IDL.Null,
   'dana' : IDL.Null,
   'qris' : IDL.Null,
+});
+export const SaleItem = IDL.Record({
+  'cogs' : IDL.Nat,
+  'productId' : IDL.Nat,
+  'productName' : IDL.Text,
+  'quantity' : IDL.Nat,
+  'unitPrice' : IDL.Nat,
+});
+export const SaleRecord = IDL.Record({
+  'id' : IDL.Nat,
+  'paymentMethod' : PaymentMethod,
+  'totalTax' : IDL.Nat,
+  'timestamp' : Time,
+  'items' : IDL.Vec(SaleItem),
+  'amount' : IDL.Nat,
+  'totalQuantity' : IDL.Nat,
 });
 
 export const idlService = IDL.Service({
@@ -110,6 +122,7 @@ export const idlService = IDL.Service({
       [],
     ),
   'assignCallerUserRole' : IDL.Func([IDL.Principal, UserRole], [], []),
+  'deleteSale' : IDL.Func([IDL.Nat], [IDL.Bool], []),
   'fetchDashboardSummary' : IDL.Func([], [DashboardSummary], ['query']),
   'getCallerUserProfile' : IDL.Func([], [IDL.Opt(UserProfile)], ['query']),
   'getCallerUserRole' : IDL.Func([], [UserRole], ['query']),
@@ -121,7 +134,12 @@ export const idlService = IDL.Service({
   'isCallerAdmin' : IDL.Func([], [IDL.Bool], ['query']),
   'listInventoryItems' : IDL.Func([], [IDL.Vec(InventoryItem)], ['query']),
   'listProducts' : IDL.Func([], [IDL.Vec(Product)], ['query']),
-  'recordSale' : IDL.Func([IDL.Vec(SaleItem), PaymentMethod], [IDL.Nat], []),
+  'querySales' : IDL.Func([Time, Time], [IDL.Vec(SaleRecord)], ['query']),
+  'recordSale' : IDL.Func(
+      [IDL.Vec(SaleItem), PaymentMethod, IDL.Nat],
+      [IDL.Nat],
+      [],
+    ),
   'saveCallerUserProfile' : IDL.Func([UserProfile], [], []),
   'updateInventoryItem' : IDL.Func(
       [
@@ -134,6 +152,11 @@ export const idlService = IDL.Service({
         IDL.Nat,
         IDL.Nat,
       ],
+      [IDL.Bool],
+      [],
+    ),
+  'updateSale' : IDL.Func(
+      [IDL.Nat, IDL.Vec(SaleItem), PaymentMethod, IDL.Nat],
       [IDL.Bool],
       [],
     ),
@@ -188,16 +211,28 @@ export const idlFactory = ({ IDL }) => {
     'salePrice' : IDL.Nat,
     'image' : ExternalBlob,
   });
-  const SaleItem = IDL.Record({
-    'productId' : IDL.Nat,
-    'quantity' : IDL.Nat,
-    'unitPrice' : IDL.Nat,
-  });
+  const Time = IDL.Int;
   const PaymentMethod = IDL.Variant({
     'trf' : IDL.Null,
     'tunai' : IDL.Null,
     'dana' : IDL.Null,
     'qris' : IDL.Null,
+  });
+  const SaleItem = IDL.Record({
+    'cogs' : IDL.Nat,
+    'productId' : IDL.Nat,
+    'productName' : IDL.Text,
+    'quantity' : IDL.Nat,
+    'unitPrice' : IDL.Nat,
+  });
+  const SaleRecord = IDL.Record({
+    'id' : IDL.Nat,
+    'paymentMethod' : PaymentMethod,
+    'totalTax' : IDL.Nat,
+    'timestamp' : Time,
+    'items' : IDL.Vec(SaleItem),
+    'amount' : IDL.Nat,
+    'totalQuantity' : IDL.Nat,
   });
   
   return IDL.Service({
@@ -244,6 +279,7 @@ export const idlFactory = ({ IDL }) => {
         [],
       ),
     'assignCallerUserRole' : IDL.Func([IDL.Principal, UserRole], [], []),
+    'deleteSale' : IDL.Func([IDL.Nat], [IDL.Bool], []),
     'fetchDashboardSummary' : IDL.Func([], [DashboardSummary], ['query']),
     'getCallerUserProfile' : IDL.Func([], [IDL.Opt(UserProfile)], ['query']),
     'getCallerUserRole' : IDL.Func([], [UserRole], ['query']),
@@ -255,7 +291,12 @@ export const idlFactory = ({ IDL }) => {
     'isCallerAdmin' : IDL.Func([], [IDL.Bool], ['query']),
     'listInventoryItems' : IDL.Func([], [IDL.Vec(InventoryItem)], ['query']),
     'listProducts' : IDL.Func([], [IDL.Vec(Product)], ['query']),
-    'recordSale' : IDL.Func([IDL.Vec(SaleItem), PaymentMethod], [IDL.Nat], []),
+    'querySales' : IDL.Func([Time, Time], [IDL.Vec(SaleRecord)], ['query']),
+    'recordSale' : IDL.Func(
+        [IDL.Vec(SaleItem), PaymentMethod, IDL.Nat],
+        [IDL.Nat],
+        [],
+      ),
     'saveCallerUserProfile' : IDL.Func([UserProfile], [], []),
     'updateInventoryItem' : IDL.Func(
         [
@@ -268,6 +309,11 @@ export const idlFactory = ({ IDL }) => {
           IDL.Nat,
           IDL.Nat,
         ],
+        [IDL.Bool],
+        [],
+      ),
+    'updateSale' : IDL.Func(
+        [IDL.Nat, IDL.Vec(SaleItem), PaymentMethod, IDL.Nat],
         [IDL.Bool],
         [],
       ),

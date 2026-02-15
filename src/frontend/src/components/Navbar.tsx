@@ -7,7 +7,7 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 
-type View = 'dashboard' | 'products' | 'inventory' | 'transactions';
+type View = 'dashboard' | 'products' | 'inventory' | 'transactions' | 'salesReport';
 
 interface NavbarProps {
   currentView: View;
@@ -23,10 +23,10 @@ const menuItems = [
 ];
 
 const laporanSubmenuItems = [
-  { id: 'laporan-penjualan', label: 'Laporan Penjualan' },
-  { id: 'laporan-inventori', label: 'Laporan Inventori' },
-  { id: 'laporan-pengeluaran', label: 'Laporan Pengeluaran' },
-  { id: 'laporan-absensi', label: 'Laporan Absensi' },
+  { id: 'laporan-penjualan', label: 'Laporan Penjualan', view: 'salesReport' as View },
+  { id: 'laporan-inventori', label: 'Laporan Inventori', view: null },
+  { id: 'laporan-pengeluaran', label: 'Laporan Pengeluaran', view: null },
+  { id: 'laporan-absensi', label: 'Laporan Absensi', view: null },
 ];
 
 export default function Navbar({ currentView, onViewChange }: NavbarProps) {
@@ -78,9 +78,14 @@ export default function Navbar({ currentView, onViewChange }: NavbarProps) {
                           <DropdownMenuItem
                             key={subItem.id}
                             onClick={() => {
-                              // Placeholder: no navigation yet
-                              console.log(`Clicked: ${subItem.label}`);
+                              if (subItem.view) {
+                                onViewChange(subItem.view);
+                                setLaporanOpen(false);
+                              } else {
+                                console.log(`Clicked: ${subItem.label}`);
+                              }
                             }}
+                            disabled={!subItem.view}
                           >
                             {subItem.label}
                           </DropdownMenuItem>

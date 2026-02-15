@@ -1,11 +1,15 @@
 # Specification
 
 ## Summary
-**Goal:** Prevent Version 20 “Failed to load dashboard/products/inventory” issues by making actor initialization and access-control initialization non-blocking and resilient to missing/invalid admin tokens.
+**Goal:** Menampilkan riwayat transaksi penjualan pada submenu **Reports (Laporan) > Laporan Penjualan** dalam aplikasi, lengkap dengan filter tanggal, aksi edit/hapus, dan ekspor Excel.
 
 **Planned changes:**
-- Update `frontend/src/hooks/useActor.ts` so `_initializeAccessControlWithSecret(adminToken)` failures never block or fail actor creation; log errors to console and continue with a usable authenticated (or anonymous) actor.
-- Adjust `backend/main.mo` so `_initializeAccessControlWithSecret` is safe to call with empty/invalid secrets, never traps, and does not prevent subsequent calls to `fetchDashboardSummary`, `listProducts`, or `listInventoryItems`.
-- Improve frontend handling for “Actor not available” initialization failures so they surface as technical loading errors (not authentication-required), preserve existing English failure messages, and always provide a working Retry that re-attempts actor init and the failed query.
+- Tambah view/page baru **Laporan Penjualan (SalesReportPage)** yang terbuka saat klik Navbar > Reports > "Laporan Penjualan" melalui mekanisme view-switching di `App.tsx` (tanpa React Router).
+- Buat UI tabel riwayat transaksi penjualan (read/write) dengan kolom: ID Transaksi, Tanggal & Jam, Metode Pembayaran, Produk, Kuantitas, HPP, Harga Jual, Harga Total (Kuantitas × Harga Jual), termasuk perhitungan total per baris.
+- Tambahkan filter rentang tanggal (from/to) untuk memfilter transaksi berdasarkan timestamp, dengan opsi clear untuk kembali menampilkan semua data.
+- Tambahkan aksi per transaksi: **Edit** dan **Delete**, terhubung ke backend, menampilkan pesan error bila gagal, dan refresh data setelah sukses.
+- Tambahkan dukungan backend (API & penyimpanan data) untuk memuat, memfilter (date range), mengubah, dan menghapus riwayat transaksi penjualan.
+- Pastikan data transaksi yang tersimpan memuat field historis yang diperlukan (timestamp, metode pembayaran, produk/nama, kuantitas, HPP, harga jual saat transaksi) agar laporan tidak bergantung pada data Produk saat ini.
+- Tambahkan aksi **Export to Excel (.xls)** yang mengunduh data laporan sesuai hasil filter yang sedang aktif.
 
-**User-visible outcome:** Authenticated users can load Dashboard/Products/Inventory even when the admin token is missing/invalid or access-control initialization fails; errors show the correct technical loading state with a Retry that works once initialization succeeds.
+**User-visible outcome:** Pengguna dapat membuka halaman **Laporan Penjualan** dari navbar untuk melihat riwayat transaksi penjualan dalam tabel, memfilter berdasarkan rentang tanggal, mengedit/menghapus transaksi, serta mengekspor laporan yang sedang ditampilkan ke file **.xls**.

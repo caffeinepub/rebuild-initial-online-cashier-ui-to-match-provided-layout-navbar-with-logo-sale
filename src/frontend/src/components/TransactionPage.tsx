@@ -107,6 +107,8 @@ export default function TransactionPage() {
         productId: item.productId,
         quantity: BigInt(item.quantity),
         unitPrice: product?.salePrice || BigInt(0),
+        cogs: BigInt(0),
+        productName: product?.name || '',
       };
     });
 

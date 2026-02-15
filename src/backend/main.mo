@@ -8,10 +8,11 @@ import Time "mo:core/Time";
 import Principal "mo:core/Principal";
 import Iter "mo:core/Iter";
 import Runtime "mo:core/Runtime";
-
+import Migration "migration";
 import MixinAuthorization "authorization/MixinAuthorization";
 import AccessControl "authorization/access-control";
 
+(with migration = Migration.run)
 actor {
   include MixinStorage();
 
@@ -48,6 +49,8 @@ actor {
     productId : Nat;
     quantity : Nat;
     unitPrice : Nat;
+    cogs : Nat;
+    productName : Text;
   };
 
   type SaleRecord = {
@@ -57,6 +60,7 @@ actor {
     paymentMethod : PaymentMethod;
     timestamp : Time.Time;
     totalQuantity : Nat;
+    totalTax : Nat;
   };
 
   type DashboardSummary = {
@@ -218,14 +222,23 @@ actor {
   };
 
   public query ({ caller }) func listProducts() : async [Product] {
+    if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
+      Runtime.trap("Unauthorized: Only users can view products");
+    };
     products.values().toArray();
   };
 
   public query ({ caller }) func listInventoryItems() : async [InventoryItem] {
+    if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
+      Runtime.trap("Unauthorized: Only users can view inventory");
+    };
     inventory.values().toArray();
   };
 
   public query ({ caller }) func fetchDashboardSummary() : async DashboardSummary {
+    if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
+      Runtime.trap("Unauthorized: Only users can view dashboard");
+    };
     let currentTime = Time.now();
     let dayStart = currentTime - (currentTime % 86400000000000);
     var todayRevenue = 0;
@@ -261,7 +274,7 @@ actor {
     };
   };
 
-  public shared ({ caller }) func recordSale(items : [SaleItem], paymentMethod : PaymentMethod) : async Nat {
+  public shared ({ caller }) func recordSale(items : [SaleItem], paymentMethod : PaymentMethod, totalTax : Nat) : async Nat {
     if (not (AccessControl.hasPermission(accessControlState, caller, #admin))) {
       Runtime.trap("Unauthorized: Only admins can record sales");
     };
@@ -276,10 +289,60 @@ actor {
       paymentMethod;
       timestamp = Time.now();
       totalQuantity;
+      totalTax;
     };
 
     sales.add(saleId, saleRecord);
     nextSaleId += 1;
     saleId;
+  };
+
+  public query ({ caller }) func querySales(fromTimestamp : Time.Time, toTimestamp : Time.Time) : async [SaleRecord] {
+    if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
+      Runtime.trap("Unauthorized: Only users can view sales");
+    };
+    sales.values().toArray().filter(
+      func(sale) {
+        sale.timestamp >= fromTimestamp and sale.timestamp <= toTimestamp
+      }
+    );
+  };
+
+  public shared ({ caller }) func updateSale(id : Nat, items : [SaleItem], paymentMethod : PaymentMethod, totalTax : Nat) : async Bool {
+    if (not (AccessControl.hasPermission(accessControlState, caller, #admin))) {
+      Runtime.trap("Unauthorized: Only admins can update sales");
+    };
+    switch (sales.get(id)) {
+      case (null) { false };
+      case (?existingSale) {
+        let totalAmount = items.foldLeft(0, func(acc, item) { acc + (item.quantity * item.unitPrice) });
+        let totalQuantity = items.foldLeft(0, func(acc, item) { acc + item.quantity });
+
+        let updatedSale : SaleRecord = {
+          existingSale with
+          amount = totalAmount;
+          items;
+          paymentMethod;
+          totalQuantity;
+          totalTax;
+        };
+
+        sales.add(id, updatedSale);
+        true;
+      };
+    };
+  };
+
+  public shared ({ caller }) func deleteSale(id : Nat) : async Bool {
+    if (not (AccessControl.hasPermission(accessControlState, caller, #admin))) {
+      Runtime.trap("Unauthorized: Only admins can delete sales");
+    };
+
+    if (sales.containsKey(id)) {
+      sales.remove(id);
+      true;
+    } else {
+      false;
+    };
   };
 };

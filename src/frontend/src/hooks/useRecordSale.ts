@@ -14,7 +14,7 @@ export function useRecordSale() {
   return useMutation({
     mutationFn: async ({ items, paymentMethod }: RecordSaleParams) => {
       if (!actor) throw new Error('Actor belum siap');
-      return actor.recordSale(items, paymentMethod);
+      return actor.recordSale(items, paymentMethod, BigInt(0));
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['dashboardSummary'] });
