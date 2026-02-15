@@ -1,0 +1,792 @@
+{
+  "schemaVersion": "1.0.0",
+  "projectStateVersion": 43,
+  "summary": "Kasir Online: rebuild UI; navigasi Produk + form Tambah Produk; seluruh bahasa Indonesia; perbaikan simpan produk; modul Inventori aktif dengan halaman Inventori + form Tambah Inventori + simpan; fitur penyesuaian stok inventori (Tambah/Kurangi) dan edit item dari daftar; menu Transaksi aktif dengan perubahan: pemilihan produk tidak pakai dropdown melainkan galeri produk bergambar seperti halaman Produk, klik produk membuka input quantity; transaksi harus bisa disimpan, diedit penuh, dihapus, dan diexport ke Excel sesuai format yang diberikan; dashboard otomatis ter-update saat terjadi penjualan; serta hapus seluruh pengecekan/otorisasi role admin di semua menu/fitur agar semua user bisa menjalankan operasi yang diperlukan. Tambahan scope: menu Laporan perlu memiliki submenu (Laporan Penjualan, Laporan Absensi, Laporan Inventori) dan Laporan Penjualan perlu export ke Excel mengikuti format yang akan diberikan.",
+  "architectural_notes": [
+    "Menu 'Produk' kini perlu routing/navigasi ke halaman Produk (menu lainnya tetap pasif).",
+    "Form Tambah Produk membutuhkan komponen upload gambar dengan rasio 1:1 serta container form yang mendukung scroll.",
+    "Standarisasi bahasa UI ke Bahasa Indonesia untuk semua label/menu/tombol.",
+    "Halaman Produk membutuhkan mekanisme persistensi data (minimal penyimpanan lokal/penyimpanan aplikasi) agar produk yang disimpan tetap muncul setelah kembali ke halaman Produk.",
+    "Form Tambah Produk tidak boleh memiliki field Stok/Stock.",
+    "Halaman Produk menampilkan daftar produk dalam layout kartu/galeri dengan foto 1:1; teks ringkas di bawah foto: Nama Produk, Ukuran, Harga Jual (bukan tabel).",
+    "Field Kategori dan Ukuran pada Form Tambah Produk harus berupa dropdown dengan opsi tetap (Kategori: Teh/Kopi/Matcha/Coklat/Lemon; Ukuran: Kecil/Besar/Jumbo).",
+    "Tambahkan shortcut/tombol \"Kembali ke Dashboard\" pada halaman Produk (dan konsisten di setiap sub menu/halaman) untuk navigasi cepat kembali ke Dashboard.",
+    "Menu 'Inventori' kini perlu routing/navigasi ke halaman Inventori (menu lainnya tetap pasif kecuali Produk).",
+    "Form Tambah Inventori membutuhkan field dengan dropdown opsi tetap: Kategori (Bahan Utama/Pendukung/Lain-Lain), Ukuran (Kecil/Besar/Jumbo), Satuan (Pack/Pcs/Gram/ml) serta input angka: Stok Awal, Reject, Stok Akhir."
+  ],
+  "known_issues": [
+    "Build mengalami configuration error saat proses generate/build; perlu rebuild/ulang build.",
+    "Produk tidak tersimpan: setelah isi form dan klik Simpan, kembali ke halaman Produk tanpa data tersimpan.",
+    "Form Tambah Produk masih menampilkan field Stok/Stock yang tidak diminta.",
+    "Halaman Produk masih menampilkan daftar produk dalam bentuk tabel dan belum menampilkan foto produk + ringkasan (Nama, Ukuran, Harga Jual) di bawah foto.",
+    "Application creation/build tidak berhasil (\"Application creation unsuccessful\") saat build terakhir.",
+    "Simpan inventori gagal dengan pesan: \"Backend belum mendukung inventori dengan struktur ini. Silakan perbarui backend terlebih dahulu.\" (mismatch struktur/payload inventori antara frontend dan backend).",
+    "Tidak bisa memuat halaman/data Produk, Inventori, dan Dashboard (kemungkinan error fetch/query atau build/deployment regresi setelah versi terbaru).",
+    "Gagal simpan produk: muncul error \"Unauthorized: Only admins can add products\" — saat ini add product dibatasi admin, tetapi requirement meminta tanpa rule admin.",
+    "Transaksi saat ini belum bisa disimpan (save transaksi gagal), sehingga transaksi tidak muncul di halaman Transaksi.",
+    "Gagal memuat Dashboard, Produk, Inventori, dan Transaksi pada versi terbaru (kemungkinan regresi fetch/query, actor init, atau error deployment/build)."
+  ],
+  "isFixRequest": true,
+  "existing_features": [
+    {
+      "id": "feature-rebuild-the-main-app-shell-to-match-the-provided-reference-layout-a-light-white-top-area-with-left-the-uploaded-natea-fresh-logo-and-right-of-logo-the-two-line-title-text-exactly-program-kasir-online-terpadu-and-subtitle-manajemen-usaha-natea-fresh",
+      "title": "Rebuild the main app shell to match the provided reference layout: a light/white top area with (left) the uploaded Natea Fresh logo and (right of logo) the two-line title text exactly: “Program Kasir Online Terpadu” and subtitle “Manajemen Usaha Natea Fresh”.",
+      "reqIds": [
+        "REQ-1"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-implement-a-top-navigation-menu-in-the-navbar-matching-the-screenshot-structure-with-the-following-items-produk-inventori-transaksi-laporan-absensi-all-menus-must-remain-passive-non-functional-placeholders-for-now",
+      "title": "Implement a top navigation menu in the navbar matching the screenshot structure, with the following items: Produk, Inventori, Transaksi, Laporan, Absensi. All menus must remain passive (non-functional placeholders) for now.",
+      "reqIds": [
+        "REQ-2"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-replace-the-main-content-placeholder-with-a-simple-dashboard-showing-1-a-card-for-informasi-penjualan-hari-ini-rp-with-value-0-2-a-card-for-total-quantity-penjualan-hari-ini-with-value-0-and-3-a-rekapan-metode-pembayaran-section-displayed-as-cards-for-tunai-dana-qris-transfer-values-can-be-0-placeholders",
+      "title": "Replace the main content placeholder with a simple dashboard showing: (1) a card for “Informasi Penjualan Hari Ini (Rp)” with value 0, (2) a card for “Total Quantity Penjualan Hari Ini” with value 0, and (3) a “Rekapan Metode Pembayaran” section displayed as cards for Tunai, Dana, QRIS, Transfer (values can be 0 placeholders).",
+      "reqIds": [
+        "REQ-3"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-apply-a-coherent-visual-theme-consistent-with-the-natea-fresh-logo-fresh-green-accents-warm-neutral-background-keeping-the-ui-clean-and-readable-and-consistent-across-navbar-cards-and-page-background-avoid-default-blue-purple-styling",
+      "title": "Apply a coherent visual theme consistent with the Natea Fresh logo (fresh green accents + warm neutral background), keeping the UI clean and readable, and consistent across navbar, cards, and page background (avoid default blue/purple styling).",
+      "reqIds": [
+        "REQ-4"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-add-the-uploaded-logo-file-to-the-frontend-static-assets-and-render-it-from-the-navbar-without-routing-it-through-the-backend",
+      "title": "Add the uploaded logo file to the frontend static assets and render it from the navbar without routing it through the backend.",
+      "reqIds": [
+        "REQ-5"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-make-the-navbar-produk-menu-item-clickable-and-navigate-the-main-content-area-to-a-new-products-page-when-clicked-keep-the-other-menu-items-inventori-transaksi-laporan-absensi-as-non-functional-placeholders",
+      "title": "Make the navbar \"Produk\" menu item clickable and navigate the main content area to a new \"Products\" page when clicked; keep the other menu items (Inventori, Transaksi, Laporan, Absensi) as non-functional placeholders.",
+      "reqIds": [
+        "REQ-6"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-create-a-products-page-that-includes-an-add-product-button-at-the-top-of-the-page",
+      "title": "Create a \"Products\" page that includes an \"Add Product\" button at the top of the page.",
+      "reqIds": [
+        "REQ-7"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-when-add-product-is-clicked-open-a-product-input-form-with-vertical-scrolling-enabled-so-the-user-can-scroll-up-down-within-the-form-if-it-exceeds-the-viewport-containing-these-fields-product-photo-upload-1-1-ratio-product-name-category-size-cogs-hpp-sale-price",
+      "title": "When \"Add Product\" is clicked, open a product input form with vertical scrolling enabled (so the user can scroll up/down within the form if it exceeds the viewport) containing these fields: product photo upload (1:1 ratio), Product Name, Category, Size, COGS (HPP), Sale Price.",
+      "reqIds": [
+        "REQ-8"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-change-all-user-visible-ui-text-strings-across-the-app-to-indonesian-so-the-interface-is-not-mixed-with-english-including-products-page-product-form-modal-buttons-helper-texts-empty-states-and-footer-copy",
+      "title": "Change all user-visible UI text strings across the app to Indonesian so the interface is not mixed with English (including Products page, product form modal, buttons, helper texts, empty states, and footer copy).",
+      "reqIds": [
+        "REQ-9"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-wire-the-add-product-form-submission-to-the-backend-when-the-user-clicks-the-save-button-in-the-modal-the-app-must-call-the-backend-add-product-method-close-the-modal-only-on-success-and-refresh-the-products-list",
+      "title": "Wire the Add Product form submission to the backend: when the user clicks the Save button in the modal, the app must call the backend add-product method, close the modal only on success, and refresh the Products list.",
+      "reqIds": [
+        "REQ-11"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-update-the-products-page-to-fetch-and-render-the-product-list-from-the-backend-replace-the-static-no-products-yet-placeholder-with-a-real-empty-state-only-when-the-backend-list-is-empty",
+      "title": "Update the Products page to fetch and render the product list from the backend (replace the static 'No products yet' placeholder with a real empty-state only when the backend list is empty).",
+      "reqIds": [
+        "REQ-12"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-remove-the-stock-quantity-field-from-the-add-product-modal-form-and-from-any-related-client-side-validation-and-submission-payloads",
+      "title": "Remove the Stock/Quantity field from the Add Product modal form and from any related client-side validation and submission payloads.",
+      "reqIds": [
+        "REQ-13"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-update-the-backend-product-model-and-apis-to-stop-tracking-stock-quantity-and-to-support-the-product-fields-needed-for-the-products-page-card-display-at-minimum-name-size-sale-price-and-product-photo-ensure-the-frontend-hooks-and-generated-types-align-with-the-updated-backend-candid-interface",
+      "title": "Update the backend product model and APIs to stop tracking stock/quantity and to support the product fields needed for the Products page card display (at minimum: name, size, sale price, and product photo). Ensure the frontend hooks and generated types align with the updated backend Candid interface.",
+      "reqIds": [
+        "REQ-14"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-redesign-the-products-page-to-display-products-as-a-card-grid-gallery-not-a-table-each-product-card-must-show-the-product-photo-and-below-the-photo-display-product-name-size-and-sale-price",
+      "title": "Redesign the Products page to display products as a card/grid gallery (not a table). Each product card must show the product photo, and below the photo display: product name, size, and sale price.",
+      "reqIds": [
+        "REQ-15"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-update-the-add-product-modal-form-productformmodal-so-the-category-field-and-the-size-field-are-dropdown-selects-not-free-text-inputs-with-fixed-options-category-options-must-be-teh-kopi-matcha-coklat-lemon-size-options-must-be-kecil-besar-jumbo-keep-the-existing-indonesian-labels-for-these-fields-and-ensure-the-selected-value-is-stored-in-the-component-state-used-on-submit",
+      "title": "Update the Add Product modal form (ProductFormModal) so the Category field and the Size field are dropdown selects (not free-text inputs) with fixed options. Category options must be: Teh, Kopi, Matcha, Coklat, Lemon. Size options must be: Kecil, Besar, Jumbo. Keep the existing Indonesian labels for these fields and ensure the selected value is stored in the component state used on submit.",
+      "reqIds": [
+        "REQ-16"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-add-a-visible-shortcut-button-on-the-products-page-that-navigates-the-user-back-to-the-dashboard-view",
+      "title": "Add a visible shortcut/button on the Products page that navigates the user back to the Dashboard view.",
+      "reqIds": [
+        "REQ-17"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-wire-the-products-page-dashboard-shortcut-into-the-existing-view-state-in-app-tsx-by-passing-a-navigation-callback-into-productspage-and-invoking-it-when-the-shortcut-is-clicked",
+      "title": "Wire the Products page Dashboard shortcut into the existing view state in App.tsx by passing a navigation callback into ProductsPage and invoking it when the shortcut is clicked.",
+      "reqIds": [
+        "REQ-18"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-make-the-navbar-inventori-menu-item-clickable-and-navigate-the-main-content-area-to-a-new-inventory-view-when-clicked-keep-transaksi-laporan-and-absensi-as-non-functional-placeholders",
+      "title": "Make the Navbar \"Inventori\" menu item clickable and navigate the main content area to a new Inventory view when clicked (keep \"Transaksi\", \"Laporan\", and \"Absensi\" as non-functional placeholders).",
+      "reqIds": [
+        "REQ-19"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-extend-the-existing-app-view-state-navigation-to-support-a-new-inventory-view-and-render-a-new-inventorypage-component-when-that-view-is-active",
+      "title": "Extend the existing App view-state navigation to support a new \"inventory\" view and render a new InventoryPage component when that view is active.",
+      "reqIds": [
+        "REQ-20"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-create-an-inventory-page-that-includes-an-add-inventory-button-and-displays-the-saved-inventory-items-list-showing-an-empty-state-when-there-are-no-inventory-items",
+      "title": "Create an Inventory page that includes an \"Add Inventory\" button and displays the saved inventory items list, showing an empty state when there are no inventory items.",
+      "reqIds": [
+        "REQ-21"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-implement-an-add-inventory-modal-form-scrollable-when-needed-with-the-following-fields-and-constraints-item-name-text-category-select-bahan-utama-pendukung-lain-lain-size-select-kecil-besar-jumbo-unit-select-pack-pcs-gram-ml-initial-stock-number-reject-number-final-stock-number-plus-a-save-button",
+      "title": "Implement an \"Add Inventory\" modal form (scrollable when needed) with the following fields and constraints: Item Name (text), Category (select: \"Bahan Utama\", \"Pendukung\", \"Lain-Lain\"), Size (select: \"Kecil\", \"Besar\", \"Jumbo\"), Unit (select: \"Pack\", \"Pcs\", \"Gram\", \"ml\"), Initial Stock (number), Reject (number), Final Stock (number), plus a \"Save\" button.",
+      "reqIds": [
+        "REQ-22"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-wire-the-inventory-form-submission-to-the-backend-on-save-call-the-backend-add-inventory-method-close-the-modal-only-on-success-and-refresh-the-inventory-list-on-the-inventory-page",
+      "title": "Wire the Inventory form submission to the backend: on Save, call the backend add-inventory method, close the modal only on success, and refresh the inventory list on the Inventory page.",
+      "reqIds": [
+        "REQ-24"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-replace-the-current-frontend-inventory-hooks-placeholder-implementation-so-inventory-save-calls-the-real-backend-method-and-inventory-list-renders-backend-data-remove-the-hardcoded-error-that-says-the-backend-does-not-support-the-structure",
+      "title": "Replace the current frontend inventory hooks placeholder implementation so Inventory save calls the real backend method and Inventory list renders backend data (remove the hardcoded error that says the backend does not support the structure).",
+      "reqIds": [
+        "REQ-27"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-make-final-stock-auto-calculated-in-the-inventory-form-as-finalstock-initialstock-reject-and-prevent-direct-user-editing-of-the-finalstock-field",
+      "title": "Make 'Final Stock' auto-calculated in the Inventory form as: finalStock = initialStock - reject, and prevent direct user editing of the finalStock field.",
+      "reqIds": [
+        "REQ-28"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-update-the-inventory-page-list-ui-to-include-an-actions-column-for-each-saved-inventory-row-with-three-controls-add-stock-reduce-stock-and-edit",
+      "title": "Update the Inventory page list UI to include an Actions column for each saved inventory row with three controls: \"Add Stock\", \"Reduce Stock\", and \"Edit\".",
+      "reqIds": [
+        "REQ-30"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-implement-an-adjust-stock-modal-that-opens-from-add-stock-and-reduce-stock-actions-allowing-the-user-to-enter-a-quantity-and-submit-to-the-backend-stock-adjustment-api",
+      "title": "Implement an \"Adjust Stock\" modal that opens from \"Add Stock\" and \"Reduce Stock\" actions, allowing the user to enter a quantity and submit to the backend stock-adjustment API.",
+      "reqIds": [
+        "REQ-31"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-implement-an-edit-inventory-item-modal-that-opens-from-the-edit-action-and-allows-editing-the-saved-item-fields-item-name-category-size-unit-and-saving-changes-to-the-backend-update-api",
+      "title": "Implement an \"Edit Inventory Item\" modal that opens from the \"Edit\" action and allows editing the saved item fields (item name, category, size, unit) and saving changes to the backend update API.",
+      "reqIds": [
+        "REQ-32"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-extend-frontend-inventory-hooks-frontend-src-hooks-useinventory-ts-to-include-react-query-mutations-for-1-updating-an-inventory-item-and-2-adjusting-stock-calling-the-new-backend-methods-and-invalidating-the-inventory-query-on-success",
+      "title": "Extend frontend inventory hooks (frontend/src/hooks/useInventory.ts) to include React Query mutations for (1) updating an inventory item and (2) adjusting stock, calling the new backend methods and invalidating the inventory query on success.",
+      "reqIds": [
+        "REQ-33"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-add-frontend-duplicate-name-validation-for-the-inventory-create-and-edit-flows-when-the-user-enters-an-item-name-that-already-exists-in-the-inventory-list-case-insensitive-trimmed-show-a-warning-message-and-block-saving-this-must-work-in-both-inventoryformmodal-add-and-editinventoryitemmodal-edit-allow-the-current-item-s-original-name-also-handle-backend-duplicate-rejections-by-displaying-the-backend-error-message-in-the-modal",
+      "title": "Add frontend duplicate-name validation for the Inventory create and edit flows: when the user enters an item name that already exists in the inventory list (case-insensitive, trimmed), show a warning message and block saving. This must work in both InventoryFormModal (add) and EditInventoryItemModal (edit; allow the current item’s original name). Also handle backend duplicate rejections by displaying the backend error message in the modal.",
+      "reqIds": [
+        "REQ-35"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-make-the-navbar-transaksi-menu-item-clickable-and-navigate-the-main-content-area-to-a-new-transactions-view-the-menu-is-currently-disabled-via-view-null-in-frontend-src-components-navbar-tsx",
+      "title": "Make the Navbar \"Transaksi\" menu item clickable and navigate the main content area to a new Transactions view (the menu is currently disabled via `view: null` in `frontend/src/components/Navbar.tsx`).",
+      "reqIds": [
+        "REQ-36"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-extend-the-existing-view-state-navigation-in-frontend-src-app-tsx-to-support-a-new-transactions-view-and-render-a-new-transactionpage-component-when-that-view-is-active",
+      "title": "Extend the existing view-state navigation in `frontend/src/App.tsx` to support a new `transactions` view and render a new `TransactionPage` component when that view is active.",
+      "reqIds": [
+        "REQ-37"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-implement-a-transactions-flow-ui-that-lets-the-user-build-a-cart-from-the-existing-products-list-select-a-product-set-quantity-per-line-item-and-proceed-to-checkout-if-the-cart-has-more-than-one-item-provide-an-add-item-button-to-append-another-line-item",
+      "title": "Implement a Transactions flow UI that lets the user build a cart from the existing Products list: select a product, set quantity per line item, and proceed to \"Checkout\". If the cart has more than one item, provide an \"Add Item\" button to append another line item.",
+      "reqIds": [
+        "REQ-38"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-after-checkout-show-a-payment-step-with-payment-method-choices-tunai-dana-qris-trf-the-user-can-confirm-payment-to-finalize-the-sale",
+      "title": "After \"Checkout\", show a Payment step with payment method choices: Tunai, Dana, QRIS, TRF. The user can confirm payment to finalize the sale.",
+      "reqIds": [
+        "REQ-39"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-update-the-dashboard-ui-frontend-src-components-dashboard-tsx-to-display-live-values-from-the-backend-today-summary-query-instead-of-hardcoded-zeros-including-the-payment-method-recap-cards",
+      "title": "Update the Dashboard UI (`frontend/src/components/Dashboard.tsx`) to display live values from the backend \"today summary\" query instead of hardcoded zeros, including the payment method recap cards.",
+      "reqIds": [
+        "REQ-42"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-wire-the-transactions-payment-confirmation-to-call-the-backend-sale-recording-method-and-on-success-refresh-both-the-dashboard-summary-query-and-any-related-ui-state-so-the-dashboard-updates-automatically-after-a-sale",
+      "title": "Wire the Transactions payment confirmation to call the backend sale-recording method and, on success, refresh both the Dashboard summary query and any related UI state so the Dashboard updates automatically after a sale.",
+      "reqIds": [
+        "REQ-43"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-fix-the-root-cause-preventing-dashboard-products-and-inventory-from-loading-by-ensuring-authenticated-callers-have-the-required-backend-permissions-both-user-for-read-apis-and-admin-for-admin-only-mutation-apis-after-deployment-upgrade",
+      "title": "Fix the root cause preventing Dashboard, Products, and Inventory from loading by ensuring authenticated callers have the required backend permissions (both #user for read APIs and #admin for admin-only mutation APIs) after deployment/upgrade.",
+      "reqIds": [
+        "REQ-44"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-add-clear-actionable-error-handling-for-failed-data-loads-on-dashboard-products-and-inventory-so-that-if-the-backend-call-fails-e-g-unauthorized-actor-unavailable-network-canister-error-the-ui-displays-a-helpful-message-and-a-retry-action-that-re-runs-the-corresponding-react-query-fetch",
+      "title": "Add clear, actionable error handling for failed data loads on Dashboard, Products, and Inventory so that if the backend call fails (e.g., unauthorized, actor unavailable, network/canister error), the UI displays a helpful message and a retry action that re-runs the corresponding React Query fetch.",
+      "reqIds": [
+        "REQ-45"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-ensure-frontend-actor-query-initialization-does-not-permanently-return-empty-data-when-the-actor-is-not-ready-queries-for-products-inventory-and-dashboard-must-wait-for-actor-readiness-and-then-fetch-real-backend-data-rather-than-resolving-to-empty-arrays-and-getting-stuck",
+      "title": "Ensure frontend actor/query initialization does not permanently return empty data when the actor is not ready: queries for products, inventory, and dashboard must wait for actor readiness and then fetch real backend data, rather than resolving to empty arrays and getting stuck.",
+      "reqIds": [
+        "REQ-46"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-ensure-the-frontend-does-not-block-product-creation-due-to-role-gating-and-surfaces-any-remaining-backend-errors-clearly-update-the-products-add-flow-so-that-users-who-are-authenticated-can-attempt-to-save-a-product-even-if-role-detection-is-still-loading-or-unavailable",
+      "title": "Ensure the frontend does not block product creation due to role-gating, and surfaces any remaining backend errors clearly. Update the products add flow so that users who are authenticated can attempt to save a product even if role detection is still loading or unavailable.",
+      "reqIds": [
+        "REQ-49"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-remove-all-frontend-role-based-gating-that-depends-on-an-admin-role-across-all-menus-pages-so-the-ui-never-disables-hides-actions-e-g-add-edit-adjust-checkout-confirm-payment-due-to-admin-role-checks",
+      "title": "Remove all frontend role-based gating that depends on an admin role across all menus/pages, so the UI never disables/hides actions (e.g., add/edit/adjust/checkout/confirm payment) due to admin-role checks.",
+      "reqIds": [
+        "REQ-52"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-ensure-frontend-error-messaging-does-not-instruct-the-user-to-gain-permissions-admin-rights-for-normal-app-operations-after-removing-admin-gating-messages-should-guide-the-user-to-log-in-only-when-unauthenticated-or-to-retry-on-transient-errors",
+      "title": "Ensure frontend error messaging does not instruct the user to gain permissions/admin rights for normal app operations after removing admin gating; messages should guide the user to log in only when unauthenticated or to retry on transient errors.",
+      "reqIds": [
+        "REQ-53"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-update-the-transactions-cart-step-ui-frontend-src-components-transactionpage-tsx-so-product-selection-does-not-use-a-dropdown-instead-show-a-full-product-gallery-with-images-matching-the-visual-card-style-used-on-the-products-page-and-when-a-user-clicks-a-product-card-open-a-quantity-input-prompt-modal-only-after-the-user-confirms-the-quantity-should-the-item-be-added-to-the-cart-or-update-the-existing-cart-line-if-a-line-is-being-edited",
+      "title": "Update the Transactions cart step UI (frontend/src/components/TransactionPage.tsx) so product selection does not use a dropdown. Instead, show a full product gallery with images (matching the visual card style used on the Products page), and when a user clicks a product card, open a quantity input prompt/modal; only after the user confirms the quantity should the item be added to the cart (or update the existing cart line if a line is being edited).",
+      "reqIds": [
+        "REQ-54"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-ensure-the-transactions-view-can-load-product-data-and-proceed-through-checkout-payment-after-the-loading-fix-so-the-transactions-page-no-longer-appears-broken-due-to-upstream-data-load-failures",
+      "title": "Ensure the Transactions view can load product data and proceed through checkout/payment after the loading fix, so the Transactions page no longer appears broken due to upstream data-load failures.",
+      "reqIds": [
+        "REQ-57"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-update-the-frontend-to-stop-depending-on-backend-role-endpoints-for-runtime-behavior-since-the-app-has-no-admin-role-and-ensure-no-ui-flow-is-blocked-by-role-detection",
+      "title": "Update the frontend to stop depending on backend role endpoints for runtime behavior (since the app has no admin role), and ensure no UI flow is blocked by role detection.",
+      "reqIds": [
+        "REQ-60"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-ensure-the-ui-no-longer-shows-an-authentication-required-error-message-for-authenticated-users-when-loading-dashboard-products-inventory-transactions-data-fails-for-reasons-other-than-being-unauthenticated",
+      "title": "Ensure the UI no longer shows an authentication-required error message for authenticated users when loading Dashboard/Products/Inventory/Transactions data fails for reasons other than being unauthenticated.",
+      "reqIds": [
+        "REQ-61"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-redeploy-the-application-using-the-current-codebase-ensuring-the-deployment-completes-successfully-no-application-creation-unsuccessful-deployment-error-and-the-deployed-app-is-reachable",
+      "title": "Redeploy the application using the current codebase, ensuring the deployment completes successfully (no \"Application creation unsuccessful\" / deployment error) and the deployed app is reachable.",
+      "reqIds": [
+        "REQ-62"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-update-the-top-navbar-so-the-laporan-reports-menu-item-is-clickable-and-when-clicked-displays-a-submenu-with-four-items-laporan-penjualan-laporan-inventori-laporan-pengeluaran-and-laporan-absensi",
+      "title": "Update the top navbar so the \"Laporan\" (Reports) menu item is clickable and, when clicked, displays a submenu with four items: \"Laporan Penjualan\", \"Laporan Inventori\", \"Laporan Pengeluaran\", and \"Laporan Absensi\".",
+      "reqIds": [
+        "REQ-67"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-ensure-the-reports-laporan-submenu-is-a-ui-only-change-and-does-not-alter-the-current-main-view-routing-state-behavior-in-app-tsx-unless-a-submenu-item-is-explicitly-clicked-submenu-item-clicks-may-be-no-ops-placeholders-for-now",
+      "title": "Ensure the Reports (Laporan) submenu is a UI-only change and does not alter the current main view routing/state behavior in App.tsx unless a submenu item is explicitly clicked (submenu item clicks may be no-ops/placeholders for now).",
+      "reqIds": [
+        "REQ-68"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-improve-the-frontend-error-surface-for-the-specific-failure-mode-where-the-actor-is-unavailable-due-to-initialization-problems-update-the-relevant-query-hooks-components-to-ensure-errors-originating-from-actor-not-available-are-reported-as-a-technical-loading-error-not-as-an-authentication-required-message-and-always-offer-a-retry-that-re-attempts-actor-initialization-and-the-failed-query",
+      "title": "Improve the frontend error surface for the specific failure mode where the actor is unavailable due to initialization problems: update the relevant query hooks/components to ensure errors originating from \"Actor not available\" are reported as a technical loading error (not as an authentication-required message) and always offer a retry that re-attempts actor initialization and the failed query.",
+      "reqIds": [
+        "REQ-71"
+      ],
+      "version": 1
+    }
+  ],
+  "new_feature_requests": [
+    {
+      "id": "AR-1",
+      "summary": "Bangun ulang UI awal Kasir Online sesuai layout referensi: navbar putih dengan logo di kiri dan teks 'Program Kasir Online Terpadu' + subjudul 'Manajemen Usaha Natea Fresh', menu (Produk/Inventori/Transaksi/Laporan/Absensi) masih pasif.",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-2",
+      "summary": "Buat dashboard konten utama berisi kartu: Informasi Penjualan Hari Ini (Rp) = 0, Total Quantity Penjualan Hari Ini = 0, serta Rekapan Metode Pembayaran (Tunai, Dana, QRIS, Transfer) dalam bentuk kartu-kartu.",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-3",
+      "summary": "Aktifkan menu 'Produk' agar saat diklik membuka halaman Produk.",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-4",
+      "summary": "Di halaman Produk, tambahkan tombol 'Tambah Produk' yang saat diklik menampilkan form input produk (scroll up/down aktif).",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-5",
+      "summary": "Form Tambah Produk berisi: upload foto produk rasio 1:1, Nama Produk, Kategori, Ukuran, HPP, Harga Jual.",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-6",
+      "summary": "Gunakan bahasa Indonesia untuk seluruh teks/label di aplikasi (UI tidak campur bahasa Inggris).",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-7",
+      "summary": "Perbaiki fungsi simpan produk: setelah klik Simpan, data produk harus tersimpan dan tampil di halaman Produk (tidak kembali tanpa data).",
+      "reqIds": [],
+      "status": "in_progress"
+    },
+    {
+      "id": "AR-9",
+      "summary": "Implement backend product storage in the single Motoko actor (backend/main.mo) so products can be created and listed persistently across page refreshes.",
+      "reqIds": [
+        "REQ-10"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-10",
+      "summary": "Hapus field 'Stok/Stock' dari form Tambah Produk (tidak diperlukan dan tidak diminta).",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-11",
+      "summary": "Ubah tampilan daftar Produk menjadi kartu/galeri dengan foto produk (bukan tabel); di bawah foto tampilkan Nama Produk, Ukuran, dan Harga Jual.",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-12",
+      "summary": "Ubah field Kategori menjadi dropdown dengan opsi: Teh, Kopi, Matcha, Coklat, Lemon; dan field Ukuran menjadi dropdown dengan opsi: Kecil, Besar, Jumbo.",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-13",
+      "summary": "Tambahkan shortcut/tombol \"Kembali ke Dashboard\" (navigasi cepat ke Dashboard) pada halaman Produk (dan idealnya tersedia di setiap sub menu/halaman).",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-14",
+      "summary": "Aktifkan menu 'Inventori' agar saat diklik membuka halaman Inventori (menu lain tetap pasif kecuali Produk & Inventori).",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-15",
+      "summary": "Buat halaman Inventori dengan tombol 'Tambah Inventori'.",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-16",
+      "summary": "Saat 'Tambah Inventori' diklik, tampilkan form input inventori berisi: Item Barang, Kategori (dropdown: Bahan Utama/Pendukung/Lain-Lain), Ukuran (dropdown: Kecil/Besar/Jumbo), Satuan (dropdown: Pack/Pcs/Gram/ml), Stok Awal, Reject, Stok Akhir, serta tombol Simpan.",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-17",
+      "summary": "Implement simpan data inventori dari form agar tersimpan dan dapat ditampilkan kembali pada halaman Inventori.",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-22",
+      "summary": "Add backend support for inventory persistence in the single Motoko actor: define an InventoryItem model and expose methods to add an inventory item and list inventory items, storing them in canister memory similarly to products.",
+      "reqIds": [
+        "REQ-23"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-23",
+      "summary": "Pada Form Tambah Inventori, field Stok Akhir harus otomatis dihitung: Stok Akhir = Stok Awal - Reject (idealnya read-only/terkunci).",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-24",
+      "summary": "Update the backend inventory data model and Candid API so it supports the inventory fields used by the Inventory form and list (itemName, category, size, unit, initialStock, reject, finalStock) instead of the current (productId, quantity, acquisitionPrice) structure.",
+      "reqIds": [
+        "REQ-25"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-25",
+      "summary": "Implement backend persistence for inventory items using the updated inventory model so saved inventory items remain available after page refresh and can be listed reliably.",
+      "reqIds": [
+        "REQ-26"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-26",
+      "summary": "Tambahkan fitur penyesuaian stok pada Inventori: aksi Tambah Stok / Kurangi Stok serta kemampuan edit item langsung dari list inventori yang tersimpan.",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-27",
+      "summary": "Add backend APIs to support updating an existing saved inventory item and adjusting its stock quantity up/down, using the existing InventoryItem model stored in backend/main.mo.",
+      "reqIds": [
+        "REQ-29"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-28",
+      "summary": "Tambahkan rule validasi duplikasi nama item inventori: jika nama item sudah ada di daftar inventori, tampilkan peringatan dan blokir penyimpanan/input item dengan nama yang sama.",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-29",
+      "summary": "Enforce a unique constraint for Inventory itemName on the backend so users cannot create or rename an inventory item to a name that already exists in the inventory list (treat names as equal after trimming whitespace; comparison must be case-insensitive). Apply this rule in both addInventoryItem and updateInventoryItem.",
+      "reqIds": [
+        "REQ-34"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-30",
+      "summary": "Aktifkan menu 'Transaksi' agar saat diklik masuk ke flow transaksi/penjualan (tidak lagi pasif).",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-31",
+      "summary": "Pada flow Transaksi: tampilkan halaman pilih produk (menggunakan daftar produk) untuk dipilih, tentukan jumlah per item, lalu lanjut 'Check Out'.",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-32",
+      "summary": "Pada flow Transaksi: jika pembelian lebih dari 1 item, sediakan tombol 'Tambah Item' untuk menambahkan item lain ke keranjang/daftar transaksi.",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-33",
+      "summary": "Setelah 'Check Out', tampilkan menu/halaman Pembayaran dengan pilihan metode: Tunai, Dana, QRIS, TRF (Transfer).",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-34",
+      "summary": "Jika terjadi penjualan, dashboard harus update otomatis sesuai nilai penjualan (Informasi Penjualan Hari Ini (Rp), Total Quantity Penjualan Hari Ini, dan rekapan metode pembayaran).",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-39",
+      "summary": "Add backend support to record a sale/transaction that includes: purchased items (productId, quantity, unit price at time of sale), computed totals (total quantity and total amount), chosen payment method (Tunai/Dana/QRIS/TRF), and a timestamp suitable for \"today\" calculations.",
+      "reqIds": [
+        "REQ-40"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-40",
+      "summary": "Implement a backend query API that returns the Dashboard \"today\" summary values derived from recorded sales: (1) total revenue today, (2) total quantity sold today, and (3) revenue totals grouped by payment method (Tunai/Dana/QRIS/TRF).",
+      "reqIds": [
+        "REQ-41"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-41",
+      "summary": "Hapus/disable rule otorisasi admin untuk operasi simpan/tambah produk: backend harus mengizinkan semua user (tanpa role admin) melakukan add product agar tidak muncul error \"Unauthorized: Only admins can add products\".",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-42",
+      "summary": "Remove the admin-only authorization checks for write operations so users can save products without requiring an admin role. Specifically, update backend/main.mo so addProduct no longer traps with \"Unauthorized: Only admins can add products\" and allows non-admin callers to add products successfully.",
+      "reqIds": [
+        "REQ-47"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-43",
+      "summary": "Remove the admin-only authorization checks for inventory write operations as well (addInventoryItem, updateInventoryItem, adjustInventoryStock) to align with the \"no admin rule\" requirement and prevent similar authorization failures in Inventory workflows.",
+      "reqIds": [
+        "REQ-48"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-44",
+      "summary": "Hapus semua pengecekan/otorisasi role admin di seluruh menu/fitur (Produk, Inventori, Transaksi, Dashboard, dll) agar semua user bisa menjalankan operasi baca/tulis tanpa diblokir rule admin.",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-45",
+      "summary": "Remove all admin-role authorization checks from the backend so no menu feature (Dashboard, Products, Inventory, Transactions, and profile-related calls) requires the caller to be an admin to read or write data.",
+      "reqIds": [
+        "REQ-50"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-46",
+      "summary": "Specifically remove the admin-only check in backend user profile APIs so profile access is not gated by admin role (e.g., update getUserProfile to not require admin when caller != user).",
+      "reqIds": [
+        "REQ-51"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-47",
+      "summary": "Ubah pemilihan produk di menu Transaksi: jangan gunakan dropdown; gunakan halaman/section galeri produk lengkap dengan gambar (mirip halaman Produk). Klik produk membuka input quantity lalu menambahkan ke keranjang.",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-48",
+      "summary": "Perbaiki penyimpanan transaksi: saat ini transaksi tidak bisa disimpan. Buat transaksi dapat tersimpan dan tampil di halaman Transaksi.",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-49",
+      "summary": "Tambahkan CRUD transaksi: transaksi yang tersimpan dapat diedit (semua field) dan dapat dihapus.",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-50",
+      "summary": "Tambahkan fitur export transaksi ke file Excel dengan format yang sama seperti file contoh yang user kirim.",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-51",
+      "summary": "Fix the root cause that makes the frontend fail to load Dashboard, Products, Inventory, and Transactions by ensuring the actor initialization step in `frontend/src/hooks/useActor.ts` (which calls `actor._initializeAccessControlWithSecret(adminToken)`) never traps or blocks subsequent query calls when the secret token is missing/empty/invalid.",
+      "reqIds": [
+        "REQ-55"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-52",
+      "summary": "Add/adjust backend error handling so that even if access-control initialization fails for any reason, the canister returns a non-trapping result to the caller (i.e., do not crash the call), and normal read/write APIs remain usable.",
+      "reqIds": [
+        "REQ-56"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-53",
+      "summary": "Remove all admin-role and user-role authorization checks from the backend so that Dashboard, Products, Inventory, Transactions, and User Profile read/write APIs do not trap with \"Unauthorized\" for authenticated callers.",
+      "reqIds": [
+        "REQ-58"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-54",
+      "summary": "Decouple the backend from the current authorization mixin so the canister does not require any access-control initialization to serve normal requests, while keeping frontend compatibility with the existing actor initialization call.",
+      "reqIds": [
+        "REQ-59"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-56",
+      "summary": "Implement Laporan Penjualan sebagai export file Excel yang mengisi data transaksi ke format Excel yang ditentukan user (menunggu contoh format/template).",
+      "reqIds": [],
+      "status": "blocked"
+    },
+    {
+      "id": "AR-58",
+      "summary": "If deployment fails again, identify and fix the root cause of the build/deploy configuration error so that subsequent redeploy attempts succeed without manual intervention.",
+      "reqIds": [
+        "REQ-63"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-59",
+      "summary": "Prevent frontend actor creation from failing when backend access-control initialization is unavailable or the secret token is missing/invalid: update `frontend/src/hooks/useActor.ts` so the call to `actor._initializeAccessControlWithSecret(adminToken)` is wrapped in a safe try/catch (or guarded by method existence) and never rejects the actor query. The hook must still return a usable actor for authenticated users even when initialization fails.",
+      "reqIds": [
+        "REQ-64"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-60",
+      "summary": "Decouple backend from authorization/access-control initialization so normal app APIs do not depend on any access-control secret being set: update `backend/main.mo` to ensure `_initializeAccessControlWithSecret` (if kept for compatibility) never traps for empty/invalid secrets and returns a non-throwing result, and ensure core APIs (Dashboard summary, product/inventory list & write, record sale, user profile read/write) remain usable for authenticated callers without any admin role checks.",
+      "reqIds": [
+        "REQ-65"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-61",
+      "summary": "Fix deployment/build configuration issues so deployment completes successfully: ensure the repository contains all required backend files referenced by the platform (including `backend/migration.mo` per system context) and that the backend compiles with the current dependencies and Candid interface expected by the frontend.",
+      "reqIds": [
+        "REQ-66"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-62",
+      "summary": "Edit menu 'Laporan' agar saat diklik menampilkan submenu: Laporan Penjualan, Laporan Inventori, Laporan Pengeluaran, Laporan Absensi.",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-63",
+      "summary": "Update `frontend/src/hooks/useActor.ts` so actor creation never fails or blocks app data queries when the `actor._initializeAccessControlWithSecret(adminToken)` call fails (e.g., missing/empty/invalid token, method not present, or canister rejects). The hook must still return a usable authenticated actor (or anonymous actor when logged out) even if access-control initialization fails.",
+      "reqIds": [
+        "REQ-69"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-64",
+      "summary": "Ensure the backend canister does not trap or reject during `_initializeAccessControlWithSecret` in a way that prevents normal application use. If access-control mixins are present, adjust `backend/main.mo` so `_initializeAccessControlWithSecret` is safe to call with an empty/invalid secret and always returns a non-trapping result, and ensure core APIs (dashboard summary, product list, inventory list) remain usable without any prior successful access-control initialization.",
+      "reqIds": [
+        "REQ-70"
+      ],
+      "status": "pending"
+    }
+  ],
+  "gameProjectType": "none",
+  "projectName": "Rebuild initial Online Cashier UI to match provided layout (navbar with logo + sales dashboard cards)",
+  "clarification_mode": "instant",
+  "clarification_rounds": 0
+}

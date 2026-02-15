@@ -1,0 +1,28 @@
+{
+  "kind": "feature_evidence_report",
+  "features": [
+    {
+      "featureId": "feature-improve-the-frontend-error-surface-for-the-specific-failure-mode-where-the-actor-is-unavailable-due-to-initialization-problems-update-the-relevant-query-hooks-components-to-ensure-errors-originating-from-actor-not-available-are-reported-as-a-technical-loading-error-not-as-an-authentication-required-message-and-always-offer-a-retry-that-re-attempts-actor-initialization-and-the-failed-query",
+      "featureTitle": "Improve the frontend error surface for the specific failure mode where the actor is unavailable due to initialization problems: update the relevant query hooks/components to ensure errors originating from \"Actor not available\" are reported as a technical loading error (not as an authentication-required message) and always offer a retry that re-attempts actor initialization and the failed query.",
+      "files": [
+        "frontend/src/components/Dashboard.tsx",
+        "frontend/src/components/InventoryPage.tsx",
+        "frontend/src/components/ProductsPage.tsx",
+        "frontend/src/components/QueryErrorState.tsx"
+      ],
+      "components": [
+        "core-infrastructure@1.0.2",
+        "shadcn-ui@1.0.0",
+        "build-template-react@1.0.0",
+        "initial-app@1.0.0",
+        "github-export-icp-cli@1.0.0",
+        "blob-storage@4.0.0",
+        "authorization@4.0.0"
+      ],
+      "testIds": [
+        "REQ-71"
+      ],
+      "confidence": "high"
+    }
+  ]
+}

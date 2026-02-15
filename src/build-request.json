@@ -1,0 +1,88 @@
+{
+  "kind": "build_request",
+  "title": "Fix Version 20 data loading failures (Dashboard/Products/Inventory) by making actor initialization and access-control init non-blocking",
+  "priority": "high",
+  "requirements": [
+    {
+      "id": "REQ-69",
+      "text": "Update `frontend/src/hooks/useActor.ts` so actor creation never fails or blocks app data queries when the `actor._initializeAccessControlWithSecret(adminToken)` call fails (e.g., missing/empty/invalid token, method not present, or canister rejects). The hook must still return a usable authenticated actor (or anonymous actor when logged out) even if access-control initialization fails.",
+      "target": "frontend",
+      "source": {
+        "messageIds": [
+          "recent-messages-4"
+        ],
+        "quotes": [
+          "versi 20 , keluar pesan :  Failed to load dashboard ... Failed to load products ... Failed to load inventory ..."
+        ]
+      },
+      "acceptanceCriteria": [
+        "When the user is authenticated, Dashboard/Products/Inventory queries can execute even if `caffeineAdminToken` is missing or empty.",
+        "A failure in `_initializeAccessControlWithSecret` does not cause the actor React Query (`ACTOR_QUERY_KEY`) to end in an error state.",
+        "If `_initializeAccessControlWithSecret` fails, the app logs the error to console (for debugging) but continues with a working actor instance."
+      ]
+    },
+    {
+      "id": "REQ-70",
+      "text": "Ensure the backend canister does not trap or reject during `_initializeAccessControlWithSecret` in a way that prevents normal application use. If access-control mixins are present, adjust `backend/main.mo` so `_initializeAccessControlWithSecret` is safe to call with an empty/invalid secret and always returns a non-trapping result, and ensure core APIs (dashboard summary, product list, inventory list) remain usable without any prior successful access-control initialization.",
+      "target": "backend",
+      "source": {
+        "messageIds": [
+          "recent-messages-4"
+        ],
+        "quotes": [
+          "Failed to load dashboard",
+          "Failed to load products",
+          "Failed to load inventory"
+        ]
+      },
+      "acceptanceCriteria": [
+        "Calling `_initializeAccessControlWithSecret(\"\")` does not trap and does not prevent subsequent calls to `fetchDashboardSummary`, `listProducts`, and `listInventoryItems`.",
+        "`fetchDashboardSummary`, `listProducts`, and `listInventoryItems` succeed for authenticated callers even if access-control initialization was not performed or failed.",
+        "Backend errors (if any) are returned as regular call errors, not traps that break the canister or prevent other methods from being called."
+      ]
+    },
+    {
+      "id": "REQ-71",
+      "text": "Improve the frontend error surface for the specific failure mode where the actor is unavailable due to initialization problems: update the relevant query hooks/components to ensure errors originating from \"Actor not available\" are reported as a technical loading error (not as an authentication-required message) and always offer a retry that re-attempts actor initialization and the failed query.",
+      "target": "frontend",
+      "source": {
+        "messageIds": [
+          "recent-messages-4"
+        ],
+        "quotes": [
+          "Failed to load dashboard",
+          "Unable to load dashboard data. Please try again."
+        ]
+      },
+      "acceptanceCriteria": [
+        "If a query fails due to actor initialization issues, the UI shows the existing English failure titles/messages (e.g., \"Failed to load dashboard\") and a working Retry button.",
+        "For authenticated users, the UI must not show \"You need to log in to access this data.\" unless the failure is actually due to being unauthenticated.",
+        "Retry re-runs the underlying React Query fetch and succeeds once the actor becomes available."
+      ]
+    }
+  ],
+  "constraints": [
+    "Do not modify any files under `frontend/src/components/ui` (read-only components).",
+    "Do not edit immutable frontend paths listed in SYSTEM_CONTEXT (e.g., `frontend/src/hooks/useInternetIdentity.ts(x)`, `frontend/src/main.tsx`).",
+    "Backend must remain a single Motoko actor in `backend/main.mo`; only add `backend/migration.mo` changes if state migration is truly required."
+  ],
+  "nonGoals": [
+    "Adding new features or changing navigation/menu behavior.",
+    "Changing existing Indonesian UI labels/content beyond what is required to correctly display the existing English error states.",
+    "Introducing any external auth providers or databases."
+  ],
+  "imageRequirements": {
+    "required": [],
+    "edits": []
+  },
+  "userProfileUpdate": {
+    "goalsToAdd": [],
+    "goalsToRemove": [],
+    "preferencesToAdd": [],
+    "preferencesToRemove": [],
+    "miscToAdd": [],
+    "miscToRemove": [],
+    "fieldsToSet": {},
+    "fieldsToDelete": []
+  }
+}

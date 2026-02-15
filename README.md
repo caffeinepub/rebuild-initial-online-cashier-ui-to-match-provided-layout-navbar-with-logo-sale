@@ -1,2 +1,3 @@
-# rebuild-initial-online-cashier-ui-to-match-provided-layout-navbar-with-logo-sale
-Exported from Caffeine project: Rebuild initial Online Cashier UI to match provided layout (navbar with logo + sales dashboard cards)
+## 
+
+To run app build and run docker image: `docker build -t app . docker run -it --network host app`

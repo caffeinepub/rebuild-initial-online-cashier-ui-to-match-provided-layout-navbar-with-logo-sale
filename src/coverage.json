@@ -1,0 +1,64 @@
+{
+  "kind": "coverage_report",
+  "version": "1.0",
+  "generatedAt": "2026-02-15T11:02:01.070Z",
+  "sources": {
+    "buildRequest": true,
+    "implementationPlan": true
+  },
+  "requirements": {
+    "total": 3,
+    "implemented": 1,
+    "items": [
+      {
+        "id": "REQ-69",
+        "summary": "Update `frontend/src/hooks/useActor.ts` so actor creation never fails or blocks app data queries when the `actor._initializeAccessControlWithSecret(adminToken)` call fails (e.g., missing/empty/invalid token, method not present, or canister rejects). The hook must still return a usable authenticated actor (or anonymous actor when logged out) even if access-control initialization fails.",
+        "status": "missing",
+        "plannedFiles": [
+          "frontend/src/hooks/useActor.ts"
+        ],
+        "matchedFiles": []
+      },
+      {
+        "id": "REQ-70",
+        "summary": "Ensure the backend canister does not trap or reject during `_initializeAccessControlWithSecret` in a way that prevents normal application use. If access-control mixins are present, adjust `backend/main.mo` so `_initializeAccessControlWithSecret` is safe to call with an empty/invalid secret and always returns a non-trapping result, and ensure core APIs (dashboard summary, product list, inventory list) remain usable without any prior successful access-control initialization.",
+        "status": "unknown",
+        "plannedFiles": [],
+        "matchedFiles": []
+      },
+      {
+        "id": "REQ-71",
+        "summary": "Improve the frontend error surface for the specific failure mode where the actor is unavailable due to initialization problems: update the relevant query hooks/components to ensure errors originating from \"Actor not available\" are reported as a technical loading error (not as an authentication-required message) and always offer a retry that re-attempts actor initialization and the failed query.",
+        "status": "implemented",
+        "plannedFiles": [
+          "frontend/src/components/QueryErrorState.tsx",
+          "frontend/src/hooks/useActor.ts",
+          "frontend/src/components/Dashboard.tsx",
+          "frontend/src/components/ProductsPage.tsx",
+          "frontend/src/components/InventoryPage.tsx"
+        ],
+        "matchedFiles": [
+          "frontend/src/components/QueryErrorState.tsx",
+          "frontend/src/components/Dashboard.tsx",
+          "frontend/src/components/ProductsPage.tsx",
+          "frontend/src/components/InventoryPage.tsx"
+        ]
+      }
+    ]
+  },
+  "changedFiles": [
+    "backend/main.mo",
+    "build-request.json",
+    "feature_evidence.json",
+    "frontend-file-summaries.txt",
+    "frontend-implementation-plan.json",
+    "frontend/src/components/Dashboard.tsx",
+    "frontend/src/components/InventoryPage.tsx",
+    "frontend/src/components/ProductsPage.tsx",
+    "frontend/src/components/QueryErrorState.tsx",
+    "project_state.json",
+    "scratch/component-selection.json",
+    "spec.md",
+    "spec_vs_diff_report.json"
+  ]
+}

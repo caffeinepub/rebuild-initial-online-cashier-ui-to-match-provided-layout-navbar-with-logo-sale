@@ -1,0 +1,59 @@
+{
+  "kind": "implementation_plan",
+  "version": "1.0",
+  "title": "Make actor access-control initialization non-blocking to prevent Dashboard/Products/Inventory load failures (v20)",
+  "requirements": [
+    {
+      "id": "REQ-69",
+      "summary": "Make useActor return a usable actor even if access-control initialization fails, is missing, or rejects, without putting the actor query into an error state.",
+      "acceptanceCriteria": [
+        "When the user is authenticated, Dashboard/Products/Inventory queries can execute even if `caffeineAdminToken` is missing or empty.",
+        "A failure in `_initializeAccessControlWithSecret` does not cause the actor React Query (`ACTOR_QUERY_KEY`) to end in an error state.",
+        "If `_initializeAccessControlWithSecret` fails, the app logs the error to console (for debugging) but continues with a working actor instance."
+      ],
+      "file_operations": [
+        {
+          "path": "frontend/src/hooks/useActor.ts",
+          "operation": "modify",
+          "description": "Update actor creation so access-control initialization (from the authorization component) is best-effort and non-blocking: return the authenticated/anonymous actor immediately, guard for missing `_initializeAccessControlWithSecret`, skip or safely attempt when `caffeineAdminToken` is empty, and wrap any initialization attempt in try/catch with console logging so the actor query never rejects. Verify the component's usage instructions before implementing."
+        }
+      ]
+    },
+    {
+      "id": "REQ-71",
+      "summary": "Ensure 'Actor not available' failures show technical loading errors (not auth-required messaging) and provide a retry that re-attempts actor initialization plus the failed query.",
+      "acceptanceCriteria": [
+        "If a query fails due to actor initialization issues, the UI shows the existing English failure titles/messages (e.g., \"Failed to load dashboard\") and a working Retry button.",
+        "For authenticated users, the UI must not show \"You need to log in to access this data.\" unless the failure is actually due to being unauthenticated.",
+        "Retry re-runs the underlying React Query fetch and succeeds once the actor becomes available."
+      ],
+      "file_operations": [
+        {
+          "path": "frontend/src/components/QueryErrorState.tsx",
+          "operation": "modify",
+          "description": "Refine error classification so 'Actor not available' / 'actor not ready' / 'actor belum siap' is treated as a technical initialization/loading issue (never mapped to the authentication-required message), while preserving the existing English error titles/messages passed by callers and always rendering a working Retry button."
+        },
+        {
+          "path": "frontend/src/hooks/useActor.ts",
+          "operation": "modify",
+          "description": "Expose a stable actor re-initialization trigger (e.g., a refetch function and/or query key helper for the actor React Query) so UI Retry actions can explicitly re-attempt actor initialization before re-running dependent queries. (No backend changes.)"
+        },
+        {
+          "path": "frontend/src/components/Dashboard.tsx",
+          "operation": "modify",
+          "description": "Wire Retry to re-attempt actor initialization first (via useActor-provided refetch/trigger) and then re-run the dashboard summary query refetch; ensure the existing English error title/message are shown for actor initialization failures."
+        },
+        {
+          "path": "frontend/src/components/ProductsPage.tsx",
+          "operation": "modify",
+          "description": "Wire Retry to re-attempt actor initialization first (via useActor-provided refetch/trigger) and then re-run the products query refetch; ensure the existing English error title/message are shown for actor initialization failures."
+        },
+        {
+          "path": "frontend/src/components/InventoryPage.tsx",
+          "operation": "modify",
+          "description": "Wire Retry to re-attempt actor initialization first (via useActor-provided refetch/trigger) and then re-run the inventory query refetch; ensure the existing English error title/message are shown for actor initialization failures."
+        }
+      ]
+    }
+  ]
+}
