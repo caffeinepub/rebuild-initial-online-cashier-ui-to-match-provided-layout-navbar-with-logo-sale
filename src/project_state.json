@@ -1,22 +1,40 @@
 {
   "schemaVersion": "1.0.0",
   "projectStateVersion": 3,
-  "summary": "Inventory dashboard application with a Reports menu, including an Inventory Report (stock change history), currently affected by an authentication/connection error that needs fixing.",
-  "architectural_notes": [
-    "Inventory Report is located under Reports menu and displays stock change history.",
-    "Inventory Report page should not require authentication (app runs without login).",
-    "Harden frontend↔backend connection/retry handling to avoid 'Unable to connect to the service' on page load."
-  ],
-  "known_issues": [
-    "Opening Reports → Inventory Report triggers an authentication error and fails to load."
-  ],
-  "isFixRequest": true,
+  "summary": "New project",
+  "architectural_notes": [],
+  "known_issues": [],
+  "isFixRequest": false,
   "existing_features": [
     {
-      "id": "feature-ensure-the-frontend-inventory-report-view-loads-reliably-and-does-not-display-any-authentication-required-error-state-when-opened-from-reports-inventory-report",
-      "title": "Ensure the frontend Inventory Report view loads reliably and does not display any authentication-required error state when opened from Reports → Inventory Report.",
+      "id": "feature-update-the-shared-product-option-constants-so-the-product-form-uses-fixed-dropdown-values-for-category-and-size-category-must-be-exactly-teh-kopi-matcha-coklat-lemon-and-size-must-be-exactly-kecil-besar-jumbo",
+      "title": "Update the shared product option constants so the Product form uses fixed dropdown values for Category and Size: Category must be exactly [\"Teh\", \"Kopi\", \"Matcha\", \"Coklat\", \"Lemon\"], and Size must be exactly [\"Kecil\", \"Besar\", \"Jumbo\"].",
+      "reqIds": [
+        "REQ-1"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-change-the-product-name-field-in-the-product-form-from-a-free-text-input-to-a-required-dropdown-with-these-exact-options-es-teh-ori-kecil-es-teh-ori-besar-kopi-aren-ori-kecil-kopi-aren-besar-creamilky-latte-kecil-creamilky-latte-besar-matcha-latte-choco-melt-lemon-tea-kecil-lemon-tea-besar-lemon-fresh-kecil-lemon-fresh-besar-teh-manis-hangat-kecil-teh-hangat-besar-es-batu-besar",
+      "title": "Change the Product Name field in the Product form from a free-text input to a required dropdown with these exact options: \"Es Teh Ori Kecil\", \"Es Teh Ori Besar\", \"Kopi Aren Ori Kecil\", \"Kopi Aren Besar\", \"Creamilky Latte Kecil\", \"Creamilky Latte Besar\", \"Matcha Latte\", \"Choco Melt\", \"Lemon Tea Kecil\", \"Lemon Tea Besar\", \"Lemon Fresh Kecil\", \"Lemon Fresh Besar\", \"Teh Manis Hangat Kecil\", \"Teh Hangat Besar\", \"Es Batu Besar\".",
       "reqIds": [
         "REQ-2"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-ensure-selecting-a-product-name-does-not-auto-fill-or-modify-category-and-size-category-and-size-must-remain-manually-selectable-by-the-user",
+      "title": "Ensure selecting a Product Name does not auto-fill or modify Category and Size; Category and Size must remain manually selectable by the user.",
+      "reqIds": [
+        "REQ-3"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-add-an-hpp-field-to-the-product-form-as-a-plain-numeric-input-numbers-only-no-automatic-rupiah-formatting-and-persist-it-as-part-of-the-product-record-in-the-backend",
+      "title": "Add an HPP field to the Product form as a plain numeric input (numbers only, no automatic Rupiah formatting) and persist it as part of the Product record in the backend.",
+      "reqIds": [
+        "REQ-4"
       ],
       "version": 1
     }
@@ -24,32 +42,32 @@
   "new_feature_requests": [
     {
       "id": "AR-1",
-      "summary": "Add/ensure Reports → Inventory Report submenu that shows stock change history (histori perubahan stok).",
+      "summary": "Update Form Produk: Kategori dropdown fixed (Teh, Kopi, Matcha, Coklat, Lemon) and Ukuran dropdown fixed (Kecil, Besar, Jumbo)",
       "reqIds": [],
       "status": "pending"
     },
     {
       "id": "AR-2",
-      "summary": "Improve connection mechanism to backend/service so the app reliably loads the Inventory Report page.",
+      "summary": "Add field HPP to Form Produk as numeric input (plain number, no Rp formatting)",
       "reqIds": [],
       "status": "pending"
     },
     {
       "id": "AR-3",
-      "summary": "Remove/avoid authentication requirement for opening the Inventory Report page (fix erroneous auth prompt/error).",
+      "summary": "Change Nama Produk on Form Produk to dropdown with specified fixed options; selection does NOT auto-fill kategori/ukuran (remain manual)",
       "reqIds": [],
       "status": "pending"
     },
     {
-      "id": "AR-4",
-      "summary": "Update the backend inventory report query so that opening the Inventory Report page does not require authentication (anonymous users must be able to call `getInventoryReports`).",
+      "id": "AR-8",
+      "summary": "If the canister currently has persisted products, add a conditional migration so existing product records are upgraded with a safe default HPP value (e.g., 0) without losing data.",
       "reqIds": [
-        "REQ-1"
+        "REQ-5"
       ],
       "status": "pending"
     }
   ],
-  "projectName": "Natea Fresh POS",
+  "projectName": "Product Catalog",
   "clarification_mode": "instant",
   "clarification_rounds": 0
 }

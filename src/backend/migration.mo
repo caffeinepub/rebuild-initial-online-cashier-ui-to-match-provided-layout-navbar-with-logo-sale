@@ -1,77 +1,46 @@
 import Map "mo:core/Map";
 import Nat "mo:core/Nat";
-import Array "mo:core/Array";
+import Principal "mo:core/Principal";
+import Storage "blob-storage/Storage";
+import List "mo:core/List";
 import Time "mo:core/Time";
-import Text "mo:core/Text";
 
 module {
-  type PaymentMethod = {
-    #dana;
-    #qris;
-    #tunai;
-    #trf;
-  };
-
-  type SaleItemOld = {
-    productId : Nat;
-    quantity : Nat;
-    unitPrice : Nat;
-  };
-
-  type SaleRecordOld = {
+  type OldProduct = {
     id : Nat;
-    items : [SaleItemOld];
-    paymentMethod : PaymentMethod;
-    timestamp : Time.Time;
-    totalQuantity : Nat;
-    amount : Nat;
+    name : Text;
+    size : Text;
+    category : Text;
+    salePrice : Nat;
+    image : Storage.ExternalBlob;
   };
 
   type OldActor = {
-    sales : Map.Map<Nat, SaleRecordOld>;
+    products : Map.Map<Nat, OldProduct>;
+    // Only preserving the field relevant to the migration.
   };
 
-  type SaleItemNew = {
-    productId : Nat;
-    quantity : Nat;
-    unitPrice : Nat;
-    cogs : Nat;
-    productName : Text;
-  };
-
-  type SaleRecordNew = {
+  type NewProduct = {
     id : Nat;
-    items : [SaleItemNew];
-    paymentMethod : PaymentMethod;
-    timestamp : Time.Time;
-    totalQuantity : Nat;
-    totalTax : Nat;
-    amount : Nat;
+    name : Text;
+    size : Text;
+    category : Text;
+    salePrice : Nat;
+    hpp : Nat; // New field
+    image : Storage.ExternalBlob;
   };
 
+  // Only preserving the field relevant to the migration.
   type NewActor = {
-    sales : Map.Map<Nat, SaleRecordNew>;
+    products : Map.Map<Nat, NewProduct>;
   };
 
   public func run(old : OldActor) : NewActor {
-    let newSales = old.sales.map<Nat, SaleRecordOld, SaleRecordNew>(
-      func(_id, oldSale) {
-        let newItems = oldSale.items.map(
-          func(oldItem) {
-            {
-              oldItem with
-              cogs = oldItem.unitPrice * oldItem.quantity;
-              productName = "";
-            };
-          }
-        );
-        {
-          oldSale with
-          items = newItems;
-          totalTax = 0;
-        };
+    let newProducts = old.products.map<Nat, OldProduct, NewProduct>(
+      func(_id, oldProduct) {
+        { oldProduct with hpp = 0 };
       }
     );
-    { sales = newSales };
+    { products = newProducts };
   };
 };

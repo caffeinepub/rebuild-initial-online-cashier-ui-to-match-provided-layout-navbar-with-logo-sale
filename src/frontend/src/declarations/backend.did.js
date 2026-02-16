@@ -69,6 +69,7 @@ export const InventoryItem = IDL.Record({
 });
 export const Product = IDL.Record({
   'id' : IDL.Nat,
+  'hpp' : IDL.Nat,
   'name' : IDL.Text,
   'size' : IDL.Text,
   'category' : IDL.Text,
@@ -146,7 +147,7 @@ export const idlService = IDL.Service({
       [],
     ),
   'addProduct' : IDL.Func(
-      [IDL.Text, IDL.Text, IDL.Text, IDL.Nat, ExternalBlob],
+      [IDL.Text, IDL.Text, IDL.Text, IDL.Nat, IDL.Nat, ExternalBlob],
       [IDL.Nat],
       [],
     ),
@@ -309,6 +310,7 @@ export const idlFactory = ({ IDL }) => {
   });
   const Product = IDL.Record({
     'id' : IDL.Nat,
+    'hpp' : IDL.Nat,
     'name' : IDL.Text,
     'size' : IDL.Text,
     'category' : IDL.Text,
@@ -386,7 +388,7 @@ export const idlFactory = ({ IDL }) => {
         [],
       ),
     'addProduct' : IDL.Func(
-        [IDL.Text, IDL.Text, IDL.Text, IDL.Nat, ExternalBlob],
+        [IDL.Text, IDL.Text, IDL.Text, IDL.Nat, IDL.Nat, ExternalBlob],
         [IDL.Nat],
         [],
       ),

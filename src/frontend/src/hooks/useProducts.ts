@@ -25,7 +25,8 @@ export function useAddProduct() {
       name: string; 
       size: string; 
       category: string;
-      salePrice: bigint; 
+      salePrice: bigint;
+      hpp: bigint;
       image: ExternalBlob 
     }) => {
       if (!actor) throw new Error('Service not ready');
@@ -33,7 +34,8 @@ export function useAddProduct() {
         product.name, 
         product.size, 
         product.category,
-        product.salePrice, 
+        product.salePrice,
+        product.hpp,
         product.image
       );
     },

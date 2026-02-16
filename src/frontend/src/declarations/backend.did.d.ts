@@ -53,6 +53,7 @@ export interface PaymentMethodTotals {
 }
 export interface Product {
   'id' : bigint,
+  'hpp' : bigint,
   'name' : string,
   'size' : string,
   'category' : string,
@@ -116,7 +117,7 @@ export interface _SERVICE {
     [] | [bigint]
   >,
   'addProduct' : ActorMethod<
-    [string, string, string, bigint, ExternalBlob],
+    [string, string, string, bigint, bigint, ExternalBlob],
     bigint
   >,
   'adjustInventoryStock' : ActorMethod<

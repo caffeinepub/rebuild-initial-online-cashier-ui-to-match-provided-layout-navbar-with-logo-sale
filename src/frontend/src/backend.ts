@@ -158,6 +158,7 @@ export interface SaleItem {
 }
 export interface Product {
     id: bigint;
+    hpp: bigint;
     name: string;
     size: string;
     category: string;
@@ -189,7 +190,7 @@ export interface backendInterface {
     _initializeAccessControlWithSecret(userSecret: string): Promise<void>;
     addCashTransaction(amount: bigint, transactionType: TransactionType, description: string): Promise<bigint>;
     addInventoryItem(itemName: string, category: string, size: string, unit: string, initialStock: bigint, reject: bigint, finalStock: bigint, minimumStock: bigint): Promise<bigint | null>;
-    addProduct(name: string, size: string, category: string, salePrice: bigint, image: ExternalBlob): Promise<bigint>;
+    addProduct(name: string, size: string, category: string, salePrice: bigint, hpp: bigint, image: ExternalBlob): Promise<bigint>;
     adjustInventoryStock(itemId: bigint, quantity: bigint, isAddition: boolean, description: string): Promise<boolean>;
     assignCallerUserRole(user: Principal, role: UserRole): Promise<void>;
     deleteCashTransaction(id: bigint): Promise<boolean>;
@@ -347,17 +348,17 @@ export class Backend implements backendInterface {
             return from_candid_opt_n7(this._uploadFile, this._downloadFile, result);
         }
     }
-    async addProduct(arg0: string, arg1: string, arg2: string, arg3: bigint, arg4: ExternalBlob): Promise<bigint> {
+    async addProduct(arg0: string, arg1: string, arg2: string, arg3: bigint, arg4: bigint, arg5: ExternalBlob): Promise<bigint> {
         if (this.processError) {
             try {
-                const result = await this.actor.addProduct(arg0, arg1, arg2, arg3, await to_candid_ExternalBlob_n10(this._uploadFile, this._downloadFile, arg4));
+                const result = await this.actor.addProduct(arg0, arg1, arg2, arg3, arg4, await to_candid_ExternalBlob_n10(this._uploadFile, this._downloadFile, arg5));
                 return result;
             } catch (e) {
                 this.processError(e);
                 throw new Error("unreachable");
             }
         } else {
-            const result = await this.actor.addProduct(arg0, arg1, arg2, arg3, await to_candid_ExternalBlob_n10(this._uploadFile, this._downloadFile, arg4));
+            const result = await this.actor.addProduct(arg0, arg1, arg2, arg3, arg4, await to_candid_ExternalBlob_n10(this._uploadFile, this._downloadFile, arg5));
             return result;
         }
     }
@@ -796,6 +797,7 @@ function from_candid_record_n15(_uploadFile: (file: ExternalBlob) => Promise<Uin
 }
 async function from_candid_record_n27(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: {
     id: bigint;
+    hpp: bigint;
     name: string;
     size: string;
     category: string;
@@ -803,6 +805,7 @@ async function from_candid_record_n27(_uploadFile: (file: ExternalBlob) => Promi
     image: _ExternalBlob;
 }): Promise<{
     id: bigint;
+    hpp: bigint;
     name: string;
     size: string;
     category: string;
@@ -811,6 +814,7 @@ async function from_candid_record_n27(_uploadFile: (file: ExternalBlob) => Promi
 }> {
     return {
         id: value.id,
+        hpp: value.hpp,
         name: value.name,
         size: value.size,
         category: value.category,

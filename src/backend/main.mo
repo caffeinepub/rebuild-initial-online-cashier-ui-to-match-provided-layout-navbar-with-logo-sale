@@ -9,11 +9,13 @@ import Iter "mo:core/Iter";
 import Principal "mo:core/Principal";
 import Runtime "mo:core/Runtime";
 import List "mo:core/List";
+import Migration "migration";
 
 import MixinAuthorization "authorization/MixinAuthorization";
 import AccessControl "authorization/access-control";
 
-// Specify the migration function in the with clause
+// Specify migration in with clause, only activated during upgrade
+(with migration = Migration.run)
 actor {
   include MixinStorage();
 
@@ -26,6 +28,7 @@ actor {
     size : Text;
     category : Text;
     salePrice : Nat;
+    hpp : Nat;
     image : Storage.ExternalBlob;
   };
 
@@ -149,7 +152,7 @@ actor {
   };
 
   // Product Management Functions
-  public shared ({ caller }) func addProduct(name : Text, size : Text, category : Text, salePrice : Nat, image : Storage.ExternalBlob) : async Nat {
+  public shared ({ caller }) func addProduct(name : Text, size : Text, category : Text, salePrice : Nat, hpp : Nat, image : Storage.ExternalBlob) : async Nat {
     if (not (AccessControl.hasPermission(accessControlState, caller, #admin))) {
       Runtime.trap("Unauthorized: Only admin can add new product");
     };
@@ -161,6 +164,7 @@ actor {
       size;
       category;
       salePrice;
+      hpp;
       image;
     };
     products.add(productId, product);

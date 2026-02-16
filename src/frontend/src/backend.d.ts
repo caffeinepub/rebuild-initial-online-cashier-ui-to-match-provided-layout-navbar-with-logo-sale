@@ -72,6 +72,7 @@ export interface SaleItem {
 }
 export interface Product {
     id: bigint;
+    hpp: bigint;
     name: string;
     size: string;
     category: string;
@@ -96,7 +97,7 @@ export enum UserRole {
 export interface backendInterface {
     addCashTransaction(amount: bigint, transactionType: TransactionType, description: string): Promise<bigint>;
     addInventoryItem(itemName: string, category: string, size: string, unit: string, initialStock: bigint, reject: bigint, finalStock: bigint, minimumStock: bigint): Promise<bigint | null>;
-    addProduct(name: string, size: string, category: string, salePrice: bigint, image: ExternalBlob): Promise<bigint>;
+    addProduct(name: string, size: string, category: string, salePrice: bigint, hpp: bigint, image: ExternalBlob): Promise<bigint>;
     adjustInventoryStock(itemId: bigint, quantity: bigint, isAddition: boolean, description: string): Promise<boolean>;
     assignCallerUserRole(user: Principal, role: UserRole): Promise<void>;
     deleteCashTransaction(id: bigint): Promise<boolean>;

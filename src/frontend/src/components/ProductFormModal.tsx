@@ -8,10 +8,9 @@ import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Loader2, Upload, AlertCircle } from 'lucide-react';
 import { useAddProduct } from '../hooks/useProducts';
 import { ExternalBlob } from '../backend';
-import { PRODUCT_CATEGORIES, PRODUCT_SIZES } from '../constants/productOptions';
+import { PRODUCT_CATEGORIES, PRODUCT_SIZES, PRODUCT_NAMES } from '../constants/productOptions';
 import { normalizeErrorMessage } from '../utils/errorMessage';
 import { useInternetIdentity } from '../hooks/useInternetIdentity';
-import SignInRequiredState from './SignInRequiredState';
 
 interface ProductFormModalProps {
   open: boolean;
@@ -23,6 +22,7 @@ export default function ProductFormModal({ open, onOpenChange }: ProductFormModa
   const [size, setSize] = useState('');
   const [category, setCategory] = useState('');
   const [salePrice, setSalePrice] = useState('');
+  const [hpp, setHpp] = useState('');
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
 
@@ -58,6 +58,7 @@ export default function ProductFormModal({ open, onOpenChange }: ProductFormModa
         size,
         category,
         salePrice: BigInt(salePrice),
+        hpp: BigInt(hpp),
         image: imageBlob,
       },
       {
@@ -67,6 +68,7 @@ export default function ProductFormModal({ open, onOpenChange }: ProductFormModa
           setSize('');
           setCategory('');
           setSalePrice('');
+          setHpp('');
           setImageFile(null);
           setImagePreview(null);
           onOpenChange(false);
@@ -98,13 +100,18 @@ export default function ProductFormModal({ open, onOpenChange }: ProductFormModa
           <form onSubmit={handleSubmit} className="space-y-4">
             <div className="space-y-2">
               <Label htmlFor="name">Nama Produk</Label>
-              <Input
-                id="name"
-                value={name}
-                onChange={(e) => setName(e.target.value)}
-                placeholder="Contoh: Es Teh Manis"
-                required
-              />
+              <Select value={name} onValueChange={setName} required>
+                <SelectTrigger id="name">
+                  <SelectValue placeholder="Pilih nama produk" />
+                </SelectTrigger>
+                <SelectContent>
+                  {PRODUCT_NAMES.map((productName) => (
+                    <SelectItem key={productName} value={productName}>
+                      {productName}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
 
             <div className="grid grid-cols-2 gap-4">
@@ -141,17 +148,32 @@ export default function ProductFormModal({ open, onOpenChange }: ProductFormModa
               </div>
             </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="salePrice">Harga Jual (Rp)</Label>
-              <Input
-                id="salePrice"
-                type="number"
-                value={salePrice}
-                onChange={(e) => setSalePrice(e.target.value)}
-                placeholder="10000"
-                min="0"
-                required
-              />
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="hpp">HPP</Label>
+                <Input
+                  id="hpp"
+                  type="number"
+                  value={hpp}
+                  onChange={(e) => setHpp(e.target.value)}
+                  placeholder="5000"
+                  min="0"
+                  required
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="salePrice">Harga Jual (Rp)</Label>
+                <Input
+                  id="salePrice"
+                  type="number"
+                  value={salePrice}
+                  onChange={(e) => setSalePrice(e.target.value)}
+                  placeholder="10000"
+                  min="0"
+                  required
+                />
+              </div>
             </div>
 
             <div className="space-y-2">
