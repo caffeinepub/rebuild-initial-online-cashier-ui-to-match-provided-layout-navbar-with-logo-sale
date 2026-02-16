@@ -21,9 +21,21 @@ export function useAddProduct() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async (product: { name: string; size: string; salePrice: bigint; image: ExternalBlob }) => {
-      if (!actor) throw new Error('Actor belum siap');
-      return actor.addProduct(product.name, product.size, product.salePrice, product.image);
+    mutationFn: async (product: { 
+      name: string; 
+      size: string; 
+      category: string;
+      salePrice: bigint; 
+      image: ExternalBlob 
+    }) => {
+      if (!actor) throw new Error('Service not ready');
+      return actor.addProduct(
+        product.name, 
+        product.size, 
+        product.category,
+        product.salePrice, 
+        product.image
+      );
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['products'] });

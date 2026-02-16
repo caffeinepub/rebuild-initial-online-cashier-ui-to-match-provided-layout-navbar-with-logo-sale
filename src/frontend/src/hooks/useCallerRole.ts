@@ -1,15 +1,28 @@
 import { useQuery } from '@tanstack/react-query';
-import { useActor } from './useActor';
+import { usePublicActor } from './usePublicActor';
 import { UserRole } from '../backend';
 
 /**
  * Hook to fetch caller role from backend.
- * Note: This hook is retained for backend compatibility but should NOT be used
- * for UI gating. All UI features should be accessible to authenticated users.
- * If the backend method is missing or fails, it returns a safe fallback without throwing.
+ * 
+ * CRITICAL: This hook must NEVER be used for UI gating, menu hiding, or page access control.
+ * All UI features (Dashboard, Products, Inventory, Transactions, Sales Report, etc.) 
+ * must remain accessible without any role checks.
+ * 
+ * This hook exists only for backend compatibility and informational purposes.
+ * It returns a safe fallback ('user') if the backend method is missing or fails,
+ * ensuring the UI never breaks due to role-checking logic.
+ * 
+ * DO NOT use this hook to:
+ * - Hide or disable menu items
+ * - Block access to pages or views
+ * - Gate any UI functionality
+ * 
+ * The backend handles all authorization; the frontend should display data
+ * and let backend errors surface through proper error handling (QueryErrorState).
  */
 export function useCallerRole() {
-  const { actor, isFetching: actorFetching } = useActor();
+  const { actor, isFetching: actorFetching } = usePublicActor();
 
   const query = useQuery<UserRole>({
     queryKey: ['callerRole'],

@@ -14,7 +14,6 @@ import {
 import { FileDown, Edit, Trash2, X } from 'lucide-react';
 import { useSalesReport } from '../hooks/useSalesReport';
 import { useDeleteSale } from '../hooks/useSalesMutations';
-import { useInternetIdentity } from '../hooks/useInternetIdentity';
 import { useQueryClient } from '@tanstack/react-query';
 import QueryErrorState from './QueryErrorState';
 import EditSaleModal from './EditSaleModal';
@@ -44,9 +43,7 @@ interface LineItem {
 }
 
 export default function SalesReportPage() {
-  const { identity } = useInternetIdentity();
   const queryClient = useQueryClient();
-  const isAuthenticated = !!identity;
 
   const [fromDate, setFromDate] = useState('');
   const [toDate, setToDate] = useState('');
@@ -106,9 +103,9 @@ export default function SalesReportPage() {
     return items.sort((a, b) => b.transactionDate.getTime() - a.transactionDate.getTime());
   }, [sales]);
 
-  const handleRetry = () => {
-    queryClient.invalidateQueries({ queryKey: ['actor'] });
-    refetch();
+  const handleRetry = async () => {
+    await queryClient.invalidateQueries({ queryKey: ['actor'] });
+    await refetch();
   };
 
   const handleClearFilter = () => {
@@ -135,11 +132,11 @@ export default function SalesReportPage() {
     return (
       <div className="space-y-6">
         <div className="flex items-center justify-between">
-          <h2 className="text-3xl font-bold text-foreground">Laporan Penjualan</h2>
+          <h2 className="text-3xl font-bold">Laporan Penjualan</h2>
         </div>
         <Card>
-          <CardContent className="py-12 text-center text-muted-foreground">
-            Memuat data...
+          <CardContent className="py-12 text-center">
+            <p className="text-muted-foreground">Memuat laporan...</p>
           </CardContent>
         </Card>
       </div>
@@ -150,14 +147,11 @@ export default function SalesReportPage() {
     return (
       <div className="space-y-6">
         <div className="flex items-center justify-between">
-          <h2 className="text-3xl font-bold text-foreground">Laporan Penjualan</h2>
+          <h2 className="text-3xl font-bold">Laporan Penjualan</h2>
         </div>
         <QueryErrorState
           error={error}
           onRetry={handleRetry}
-          title="Gagal memuat laporan"
-          message="Terjadi kesalahan saat memuat data laporan penjualan."
-          isAuthenticated={isAuthenticated}
         />
       </div>
     );
@@ -166,20 +160,24 @@ export default function SalesReportPage() {
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
-        <h2 className="text-3xl font-bold text-foreground">Laporan Penjualan</h2>
-        <Button onClick={handleExport} disabled={lineItems.length === 0}>
-          <FileDown className="h-4 w-4 mr-2" />
+        <div>
+          <h2 className="text-3xl font-bold text-foreground">Laporan Penjualan</h2>
+          <p className="text-muted-foreground mt-1">Riwayat transaksi penjualan</p>
+        </div>
+        <Button onClick={handleExport} className="gap-2" disabled={lineItems.length === 0}>
+          <FileDown className="h-4 w-4" />
           Export ke Excel
         </Button>
       </div>
 
+      {/* Date Filter */}
       <Card>
         <CardHeader>
           <CardTitle>Filter Tanggal</CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <div className="space-y-2">
+          <div className="flex flex-wrap items-end gap-4">
+            <div className="flex-1 min-w-[200px]">
               <Label htmlFor="fromDate">Dari Tanggal</Label>
               <Input
                 id="fromDate"
@@ -188,7 +186,7 @@ export default function SalesReportPage() {
                 onChange={(e) => setFromDate(e.target.value)}
               />
             </div>
-            <div className="space-y-2">
+            <div className="flex-1 min-w-[200px]">
               <Label htmlFor="toDate">Sampai Tanggal</Label>
               <Input
                 id="toDate"
@@ -197,43 +195,40 @@ export default function SalesReportPage() {
                 onChange={(e) => setToDate(e.target.value)}
               />
             </div>
-            <div className="flex items-end">
-              <Button
-                variant="outline"
-                onClick={handleClearFilter}
-                disabled={!fromDate && !toDate}
-              >
-                <X className="h-4 w-4 mr-2" />
-                Reset Filter
+            {(fromDate || toDate) && (
+              <Button variant="outline" onClick={handleClearFilter} className="gap-2">
+                <X className="h-4 w-4" />
+                Clear Filter
               </Button>
-            </div>
+            )}
           </div>
         </CardContent>
       </Card>
 
+      {/* Sales Table */}
       <Card>
         <CardHeader>
           <CardTitle>Riwayat Transaksi</CardTitle>
         </CardHeader>
         <CardContent>
           {lineItems.length === 0 ? (
-            <div className="py-12 text-center text-muted-foreground">
-              Tidak ada data transaksi untuk periode yang dipilih.
-            </div>
+            <p className="text-muted-foreground text-center py-8">
+              Tidak ada transaksi dalam periode yang dipilih.
+            </p>
           ) : (
-            <div className="overflow-x-auto">
+            <div className="border border-border rounded-lg overflow-hidden">
               <Table>
                 <TableHeader>
                   <TableRow>
                     <TableHead>ID Transaksi</TableHead>
-                    <TableHead>Tanggal & Jam</TableHead>
+                    <TableHead>Tanggal & Waktu</TableHead>
                     <TableHead>Metode Pembayaran</TableHead>
-                    <TableHead>Produk</TableHead>
+                    <TableHead>Nama Produk</TableHead>
                     <TableHead className="text-right">Qty</TableHead>
-                    <TableHead className="text-right">HPP</TableHead>
-                    <TableHead className="text-right">Harga Jual</TableHead>
-                    <TableHead className="text-right">Harga Total</TableHead>
-                    <TableHead className="text-center">Aksi</TableHead>
+                    <TableHead className="text-right">COGS</TableHead>
+                    <TableHead className="text-right">Harga Satuan</TableHead>
+                    <TableHead className="text-right">Total</TableHead>
+                    <TableHead className="text-center">Actions</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -246,14 +241,14 @@ export default function SalesReportPage() {
                       <TableCell className="text-right">{item.quantity}</TableCell>
                       <TableCell className="text-right">{formatCurrency(item.cogs)}</TableCell>
                       <TableCell className="text-right">{formatCurrency(item.unitPrice)}</TableCell>
-                      <TableCell className="text-right font-medium">
+                      <TableCell className="text-right font-semibold">
                         {formatCurrency(item.lineTotal)}
                       </TableCell>
                       <TableCell>
                         <div className="flex items-center justify-center gap-2">
                           <Button
                             variant="ghost"
-                            size="icon"
+                            size="sm"
                             onClick={() => {
                               const sale = sales?.find((s) => Number(s.id) === item.saleId);
                               if (sale) setEditingSale(sale);
@@ -263,7 +258,7 @@ export default function SalesReportPage() {
                           </Button>
                           <Button
                             variant="ghost"
-                            size="icon"
+                            size="sm"
                             onClick={() => setDeletingSaleId(item.saleId)}
                           >
                             <Trash2 className="h-4 w-4 text-destructive" />
@@ -279,15 +274,17 @@ export default function SalesReportPage() {
         </CardContent>
       </Card>
 
+      {/* Edit Sale Modal */}
       {editingSale && (
         <EditSaleModal
-          sale={editingSale}
           open={!!editingSale}
           onClose={() => setEditingSale(null)}
+          sale={editingSale}
         />
       )}
 
-      <AlertDialog open={deletingSaleId !== null} onOpenChange={() => setDeletingSaleId(null)}>
+      {/* Delete Confirmation Dialog */}
+      <AlertDialog open={deletingSaleId !== null} onOpenChange={(open) => !open && setDeletingSaleId(null)}>
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>Hapus Transaksi</AlertDialogTitle>
@@ -297,13 +294,7 @@ export default function SalesReportPage() {
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>Batal</AlertDialogCancel>
-            <AlertDialogAction
-              onClick={handleDelete}
-              disabled={deleteSaleMutation.isPending}
-              className="bg-destructive hover:bg-destructive/90"
-            >
-              {deleteSaleMutation.isPending ? 'Menghapus...' : 'Hapus'}
-            </AlertDialogAction>
+            <AlertDialogAction onClick={handleDelete}>Hapus</AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>

@@ -5,10 +5,12 @@ import InventoryFormModal from './InventoryFormModal';
 import AdjustStockModal from './AdjustStockModal';
 import EditInventoryItemModal from './EditInventoryItemModal';
 import { useInventory } from '../hooks/useInventory';
-import { useInternetIdentity } from '../hooks/useInternetIdentity';
 import QueryErrorState from './QueryErrorState';
+import SignInRequiredState from './SignInRequiredState';
 import type { InventoryItem } from '../backend';
-import { useQueryClient } from '@tanstack/react-query';
+import { useInvalidateActorQueries } from '../hooks/useInvalidateActorQueries';
+import { normalizeErrorMessage } from '../utils/errorMessage';
+import { useInternetIdentity } from '../hooks/useInternetIdentity';
 import {
   Table,
   TableBody,
@@ -31,9 +33,8 @@ export default function InventoryPage() {
   }>({ open: false, item: null });
 
   const { data: inventory, isLoading, error, refetch } = useInventory();
+  const { invalidateActorQueries } = useInvalidateActorQueries();
   const { identity } = useInternetIdentity();
-  const queryClient = useQueryClient();
-  const isAuthenticated = !!identity;
 
   const handleAddStock = (item: InventoryItem) => {
     setAdjustStockModal({ open: true, item, mode: 'add' });
@@ -48,9 +49,12 @@ export default function InventoryPage() {
   };
 
   const handleRetry = async () => {
-    // Invalidate actor query to trigger re-initialization, then refetch inventory
-    await queryClient.invalidateQueries({ queryKey: ['actor'] });
+    await invalidateActorQueries();
     await refetch();
+  };
+
+  const isLowStock = (item: InventoryItem): boolean => {
+    return Number(item.finalStock) <= Number(item.minimumStock);
   };
 
   return (
@@ -72,13 +76,25 @@ export default function InventoryPage() {
           <p className="text-muted-foreground">Memuat inventori...</p>
         </div>
       ) : error ? (
-        <QueryErrorState
-          error={error}
-          onRetry={handleRetry}
-          title="Failed to load inventory"
-          message="Unable to load inventory list. Please try again."
-          isAuthenticated={isAuthenticated}
-        />
+        (() => {
+          const normalizedError = normalizeErrorMessage(error);
+          
+          if (normalizedError.isAuthError && !identity) {
+            return (
+              <SignInRequiredState
+                title="Sign In to View Inventory"
+                description="You need to sign in with Internet Identity to view and manage inventory."
+              />
+            );
+          }
+
+          return (
+            <QueryErrorState
+              error={error}
+              onRetry={handleRetry}
+            />
+          );
+        })()
       ) : !inventory || inventory.length === 0 ? (
         <div className="border border-border rounded-lg p-12 text-center">
           <Package className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
@@ -99,12 +115,16 @@ export default function InventoryPage() {
                 <TableHead className="text-right">Stok Awal</TableHead>
                 <TableHead className="text-right">Reject</TableHead>
                 <TableHead className="text-right">Stok Akhir</TableHead>
+                <TableHead className="text-right">Minimum Stock</TableHead>
                 <TableHead className="text-center">Actions</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {inventory.map((item) => (
-                <TableRow key={item.id.toString()}>
+                <TableRow 
+                  key={item.id.toString()}
+                  className={isLowStock(item) ? 'bg-[oklch(var(--warning-low-stock))] hover:bg-[oklch(var(--warning-low-stock))] dark:bg-[oklch(var(--warning-low-stock))] dark:hover:bg-[oklch(var(--warning-low-stock))]' : ''}
+                >
                   <TableCell className="font-medium">{item.itemName}</TableCell>
                   <TableCell>{item.category}</TableCell>
                   <TableCell>{item.size}</TableCell>
@@ -112,6 +132,7 @@ export default function InventoryPage() {
                   <TableCell className="text-right">{Number(item.initialStock)}</TableCell>
                   <TableCell className="text-right">{Number(item.reject)}</TableCell>
                   <TableCell className="text-right font-semibold">{Number(item.finalStock)}</TableCell>
+                  <TableCell className="text-right">{Number(item.minimumStock)}</TableCell>
                   <TableCell>
                     <div className="flex items-center justify-center gap-2">
                       <Button
@@ -119,17 +140,17 @@ export default function InventoryPage() {
                         size="sm"
                         onClick={() => handleAddStock(item)}
                       >
-                        Add Stock
+                        Tambah
                       </Button>
                       <Button
                         variant="outline"
                         size="sm"
                         onClick={() => handleReduceStock(item)}
                       >
-                        Reduce Stock
+                        Kurangi
                       </Button>
                       <Button
-                        variant="outline"
+                        variant="ghost"
                         size="sm"
                         onClick={() => handleEdit(item)}
                       >
@@ -154,7 +175,7 @@ export default function InventoryPage() {
         <AdjustStockModal
           open={adjustStockModal.open}
           onOpenChange={(open) =>
-            setAdjustStockModal({ open, item: null, mode: 'add' })
+            setAdjustStockModal({ ...adjustStockModal, open })
           }
           item={adjustStockModal.item}
           mode={adjustStockModal.mode}
@@ -164,7 +185,7 @@ export default function InventoryPage() {
       {editModal.item && (
         <EditInventoryItemModal
           open={editModal.open}
-          onOpenChange={(open) => setEditModal({ open, item: null })}
+          onOpenChange={(open) => setEditModal({ ...editModal, open })}
           item={editModal.item}
           inventoryList={inventory || []}
         />

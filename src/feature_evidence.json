@@ -2,12 +2,10 @@
   "kind": "feature_evidence_report",
   "features": [
     {
-      "featureId": "feature-add-a-new-sales-report-view-that-is-opened-when-the-user-clicks-navbar-reports-laporan-laporan-penjualan-this-view-must-render-a-dedicated-page-component-e-g-salesreportpage-inside-the-existing-app-tsx-view-switching-no-react-router",
-      "featureTitle": "Add a new Sales Report view that is opened when the user clicks Navbar > Reports (Laporan) > \"Laporan Penjualan\"; this view must render a dedicated page component (e.g., SalesReportPage) inside the existing App.tsx view-switching (no React Router).",
+      "featureId": "feature-ensure-the-frontend-inventory-report-view-loads-reliably-and-does-not-display-any-authentication-required-error-state-when-opened-from-reports-inventory-report",
+      "featureTitle": "Ensure the frontend Inventory Report view loads reliably and does not display any authentication-required error state when opened from Reports → Inventory Report.",
       "files": [
-        "frontend/src/App.tsx",
-        "frontend/src/components/Navbar.tsx",
-        "frontend/src/components/SalesReportPage.tsx"
+        "frontend/src/components/InventoryReportPage.tsx"
       ],
       "components": [
         "core-infrastructure@1.0.2",
@@ -19,92 +17,7 @@
         "authorization@4.0.0"
       ],
       "testIds": [
-        "REQ-72"
-      ],
-      "confidence": "high"
-    },
-    {
-      "featureId": "feature-implement-the-sales-report-page-ui-to-display-a-read-write-table-of-saved-sales-transactions-sales-history-with-these-columns-in-order-transaction-id-transaction-date-time-payment-method-product-quantity-cogs-hpp-sale-price-line-total-quantity-sale-price",
-      "featureTitle": "Implement the Sales Report page UI to display a read/write table of saved sales transactions (sales history) with these columns in order: Transaction ID, Transaction date & time, Payment method, Product, Quantity, COGS (HPP), Sale price, Line total (Quantity × Sale price).",
-      "files": [
-        "frontend/src/components/SalesReportPage.tsx",
-        "frontend/src/utils/salesFormat.ts"
-      ],
-      "components": [
-        "core-infrastructure@1.0.2",
-        "shadcn-ui@1.0.0",
-        "build-template-react@1.0.0",
-        "initial-app@1.0.0",
-        "github-export-icp-cli@1.0.0",
-        "blob-storage@4.0.0",
-        "authorization@4.0.0"
-      ],
-      "testIds": [
-        "REQ-73"
-      ],
-      "confidence": "high"
-    },
-    {
-      "featureId": "feature-add-a-date-range-filter-on-the-sales-report-page-that-filters-the-displayed-sales-history-by-transaction-timestamp-the-filter-must-cover-day-month-year-via-a-single-date-range-from-to",
-      "featureTitle": "Add a date-range filter on the Sales Report page that filters the displayed sales history by transaction timestamp; the filter must cover day/month/year via a single date range (from/to).",
-      "files": [
-        "frontend/src/components/SalesReportPage.tsx",
-        "frontend/src/hooks/useSalesReport.ts"
-      ],
-      "components": [
-        "core-infrastructure@1.0.2",
-        "shadcn-ui@1.0.0",
-        "build-template-react@1.0.0",
-        "initial-app@1.0.0",
-        "github-export-icp-cli@1.0.0",
-        "blob-storage@4.0.0",
-        "authorization@4.0.0"
-      ],
-      "testIds": [
-        "REQ-74"
-      ],
-      "confidence": "high"
-    },
-    {
-      "featureId": "feature-add-per-transaction-actions-on-the-sales-report-page-to-edit-and-delete-a-saved-sales-transaction-both-actions-must-persist-to-the-backend-and-refresh-the-report-list-after-success",
-      "featureTitle": "Add per-transaction actions on the Sales Report page to Edit and Delete a saved sales transaction; both actions must persist to the backend and refresh the report list after success.",
-      "files": [
-        "frontend/src/components/EditSaleModal.tsx",
-        "frontend/src/components/SalesReportPage.tsx",
-        "frontend/src/hooks/useSalesMutations.ts"
-      ],
-      "components": [
-        "core-infrastructure@1.0.2",
-        "shadcn-ui@1.0.0",
-        "build-template-react@1.0.0",
-        "initial-app@1.0.0",
-        "github-export-icp-cli@1.0.0",
-        "blob-storage@4.0.0",
-        "authorization@4.0.0"
-      ],
-      "testIds": [
-        "REQ-75"
-      ],
-      "confidence": "high"
-    },
-    {
-      "featureId": "feature-add-an-export-to-excel-xls-action-on-the-sales-report-page-that-downloads-the-currently-filtered-sales-report-data-into-an-xls-file",
-      "featureTitle": "Add an \"Export to Excel (.xls)\" action on the Sales Report page that downloads the currently filtered sales report data into an .xls file.",
-      "files": [
-        "frontend/src/components/SalesReportPage.tsx",
-        "frontend/src/utils/exportToXls.ts"
-      ],
-      "components": [
-        "core-infrastructure@1.0.2",
-        "shadcn-ui@1.0.0",
-        "build-template-react@1.0.0",
-        "initial-app@1.0.0",
-        "github-export-icp-cli@1.0.0",
-        "blob-storage@4.0.0",
-        "authorization@4.0.0"
-      ],
-      "testIds": [
-        "REQ-78"
+        "REQ-2"
       ],
       "confidence": "high"
     }

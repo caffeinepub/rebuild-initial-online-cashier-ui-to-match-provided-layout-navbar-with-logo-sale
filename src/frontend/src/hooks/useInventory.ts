@@ -29,8 +29,9 @@ export function useAddInventory() {
       initialStock: bigint;
       reject: bigint;
       finalStock: bigint;
+      minimumStock: bigint;
     }) => {
-      if (!actor) throw new Error('Actor belum siap');
+      if (!actor) throw new Error('Service not ready');
       
       const result = await actor.addInventoryItem(
         inventory.itemName,
@@ -39,7 +40,8 @@ export function useAddInventory() {
         inventory.unit,
         inventory.initialStock,
         inventory.reject,
-        inventory.finalStock
+        inventory.finalStock,
+        inventory.minimumStock
       );
 
       // Backend returns null if duplicate or invalid
@@ -69,8 +71,9 @@ export function useUpdateInventoryItem() {
       initialStock: bigint;
       reject: bigint;
       finalStock: bigint;
+      minimumStock: bigint;
     }) => {
-      if (!actor) throw new Error('Actor not ready');
+      if (!actor) throw new Error('Service not ready');
       
       const result = await actor.updateInventoryItem(
         inventory.id,
@@ -80,7 +83,8 @@ export function useUpdateInventoryItem() {
         inventory.unit,
         inventory.initialStock,
         inventory.reject,
-        inventory.finalStock
+        inventory.finalStock,
+        inventory.minimumStock
       );
       
       // Backend returns false if duplicate, not found, or invalid
@@ -105,13 +109,15 @@ export function useAdjustInventoryStock() {
       itemId: bigint;
       quantity: bigint;
       isAddition: boolean;
+      description: string;
     }) => {
-      if (!actor) throw new Error('Actor not ready');
+      if (!actor) throw new Error('Service not ready');
       
       const result = await actor.adjustInventoryStock(
         params.itemId,
         params.quantity,
-        params.isAddition
+        params.isAddition,
+        params.description
       );
       
       if (!result) {
@@ -122,6 +128,7 @@ export function useAdjustInventoryStock() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['inventory'] });
+      queryClient.invalidateQueries({ queryKey: ['inventoryReports'] });
     },
   });
 }

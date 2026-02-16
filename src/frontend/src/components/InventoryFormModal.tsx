@@ -60,6 +60,7 @@ export default function InventoryFormModal({ open, onOpenChange, inventoryList }
   const [unit, setUnit] = useState('');
   const [initialStock, setInitialStock] = useState('');
   const [reject, setReject] = useState('');
+  const [minimumStock, setMinimumStock] = useState('');
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
   const addInventoryMutation = useAddInventory();
@@ -67,6 +68,7 @@ export default function InventoryFormModal({ open, onOpenChange, inventoryList }
   // Auto-calculate finalStock = initialStock - reject
   const initialStockValue = parseInt(initialStock) || 0;
   const rejectValue = parseInt(reject) || 0;
+  const minimumStockValue = parseInt(minimumStock) || 0;
   const finalStockValue = Math.max(0, initialStockValue - rejectValue);
 
   // Validation: check if reject > initialStock
@@ -90,6 +92,7 @@ export default function InventoryFormModal({ open, onOpenChange, inventoryList }
     setUnit('');
     setInitialStock('');
     setReject('');
+    setMinimumStock('');
     setErrorMessage(null);
     onOpenChange(false);
   };
@@ -136,13 +139,18 @@ export default function InventoryFormModal({ open, onOpenChange, inventoryList }
         return;
       }
 
+      if (isNaN(minimumStockValue) || minimumStockValue < 0) {
+        setErrorMessage('Minimum Stock harus berupa angka yang valid');
+        return;
+      }
+
       // Validate reject not greater than initialStock
       if (rejectValue > initialStockValue) {
         setErrorMessage('Reject tidak boleh lebih besar dari stok awal');
         return;
       }
 
-      // Call backend with calculated finalStock
+      // Call backend with calculated finalStock and minimumStock
       await addInventoryMutation.mutateAsync({
         itemName: itemName.trim(),
         category,
@@ -151,6 +159,7 @@ export default function InventoryFormModal({ open, onOpenChange, inventoryList }
         initialStock: BigInt(initialStockValue),
         reject: BigInt(rejectValue),
         finalStock: BigInt(finalStockValue),
+        minimumStock: BigInt(minimumStockValue),
       });
 
       // Success - close modal and reset form
@@ -288,6 +297,22 @@ export default function InventoryFormModal({ open, onOpenChange, inventoryList }
                 className="bg-muted"
               />
               <p className="text-xs text-muted-foreground">Dihitung otomatis: Stok Awal - Reject</p>
+            </div>
+
+            {/* Minimum Stock */}
+            <div className="space-y-2">
+              <Label htmlFor="minimum-stock">Minimum Stock</Label>
+              <Input
+                id="minimum-stock"
+                type="number"
+                min="0"
+                step="1"
+                placeholder="Enter minimum stock threshold"
+                value={minimumStock}
+                onChange={(e) => setMinimumStock(e.target.value)}
+                required
+              />
+              <p className="text-xs text-muted-foreground">Alert will show when stock reaches or falls below this level</p>
             </div>
 
             {/* Error Message */}

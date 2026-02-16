@@ -1,120 +1,21 @@
 {
   "kind": "implementation_plan",
   "version": "1.0",
-  "title": "Sales Report view with sales history table, filters, edit/delete, and Excel export",
+  "title": "Inventory Report: prevent auth-required UI error when opened from Reports",
   "requirements": [
     {
-      "id": "REQ-72",
-      "summary": "Add a Sales Report view wired to Navbar > Reports (Laporan) > Laporan Penjualan using existing App.tsx view-switching (no React Router).",
+      "id": "REQ-2",
+      "summary": "Make Inventory Report page resilient to auth-related backend errors and ensure it uses the anonymous actor flow without showing auth-required messaging.",
       "acceptanceCriteria": [
-        "Clicking the \"Laporan Penjualan\" submenu item changes the main content area to a Sales Report page (instead of only logging to console).",
-        "Existing views (Dashboard/Products/Inventory/Transactions) continue to work and remain selectable via the navbar."
+        "Navigating to Reports → Inventory Report renders the Inventory Report page and attempts to fetch data using the existing anonymous actor flow (no Internet Identity sign-in prompt is shown).",
+        "If there are no report entries, the page shows the existing empty state message rather than an authentication error.",
+        "If the backend is temporarily unavailable, the page shows the existing connection error UI with a working Retry that re-attempts the query."
       ],
       "file_operations": [
         {
-          "path": "frontend/src/App.tsx",
+          "path": "frontend/src/components/InventoryReportPage.tsx",
           "operation": "modify",
-          "description": "Extend the internal View union to include a Sales Report view key (e.g., 'salesReport') and render a dedicated SalesReportPage component in the existing conditional view switch (no React Router)."
-        },
-        {
-          "path": "frontend/src/components/Navbar.tsx",
-          "operation": "modify",
-          "description": "Update the Reports (Laporan) dropdown so clicking the \"Laporan Penjualan\" item calls onViewChange with the Sales Report view key (and closes the dropdown), replacing the current console.log placeholder."
-        },
-        {
-          "path": "frontend/src/components/SalesReportPage.tsx",
-          "operation": "create",
-          "description": "Create the dedicated SalesReportPage page component that will be mounted by App.tsx when the Sales Report view is selected."
-        }
-      ]
-    },
-    {
-      "id": "REQ-73",
-      "summary": "Implement Sales Report page UI showing a read/write sales history table with the specified Indonesian labels and per-line-item representation.",
-      "acceptanceCriteria": [
-        "The Sales Report page shows a table with the specified columns and renders one row per sold line-item (or an equivalent representation that still displays per-product quantity/price/line-total).",
-        "The UI labels on the page remain Indonesian (e.g., \"Laporan Penjualan\", \"Metode Pembayaran\", \"Tanggal & Jam\", \"Harga Total\").",
-        "Line total is calculated as quantity × sale price and matches the displayed values."
-      ],
-      "file_operations": [
-        {
-          "path": "frontend/src/components/SalesReportPage.tsx",
-          "operation": "modify",
-          "description": "Build the Sales Report UI: fetch real SaleRecord data, flatten to line-item rows, render the table with columns (ID Transaksi, Tanggal & Jam, Metode Pembayaran, Produk, Qty, HPP, Harga Jual, Harga Total), and compute Harga Total = Qty × Harga Jual. Use shadcn-ui (e.g., Card/Button/Inputs/Table) where appropriate. Verify the component's usage instructions before implementing."
-        },
-        {
-          "path": "frontend/src/utils/salesFormat.ts",
-          "operation": "create",
-          "description": "Add formatting helpers for Sales Report (e.g., converting backend Time bigint to JS Date, Indonesian date/time formatting, currency formatting, and line-total computation) to keep UI logic consistent."
-        }
-      ]
-    },
-    {
-      "id": "REQ-74",
-      "summary": "Add a from/to date-range filter on Sales Report that filters displayed rows by transaction timestamp and supports clearing to show all history.",
-      "acceptanceCriteria": [
-        "The Sales Report page provides a from/to date range filter.",
-        "Applying the filter updates the table to only include transactions within the selected date range.",
-        "Clearing the filter returns the table to showing all available history."
-      ],
-      "file_operations": [
-        {
-          "path": "frontend/src/components/SalesReportPage.tsx",
-          "operation": "modify",
-          "description": "Add from/to date inputs and filter state. Convert selected dates to backend Time (bigint) for querying and/or client-side filtering, and provide a clear/reset action to return to the unfiltered list. Use shadcn-ui Input/Button components as needed. Verify the component's usage instructions before implementing."
-        },
-        {
-          "path": "frontend/src/hooks/useSalesReport.ts",
-          "operation": "create",
-          "description": "Create React Query hooks to load sales history from the backend via the actor using a date-range (from/to) and to support refetching when the filter changes; keep query keys stable and compatible with existing query invalidation patterns."
-        }
-      ]
-    },
-    {
-      "id": "REQ-75",
-      "summary": "Add Edit and Delete actions per transaction in Sales Report, persisting changes to the backend, refreshing the list on success, and showing clear errors on failure.",
-      "acceptanceCriteria": [
-        "Each transaction entry in the report has an Edit action and a Delete action.",
-        "Deleting a transaction removes it from the backend and it no longer appears after the list refreshes.",
-        "Editing a transaction updates the backend record and the report reflects the updated values after success.",
-        "On backend failure, the page shows a clear error message and does not silently succeed."
-      ],
-      "file_operations": [
-        {
-          "path": "frontend/src/hooks/useSalesMutations.ts",
-          "operation": "create",
-          "description": "Add mutation hooks for updating and deleting a sale via the actor (updateSale/deleteSale), including React Query invalidation for the Sales Report query so the list refreshes after success."
-        },
-        {
-          "path": "frontend/src/components/EditSaleModal.tsx",
-          "operation": "create",
-          "description": "Create an EditSaleModal to edit a saved sale (at minimum payment method and line items quantities/prices as required by the report), validate inputs, and call the update mutation; use shadcn-ui Dialog/Form controls as needed. Verify the component's usage instructions before implementing."
-        },
-        {
-          "path": "frontend/src/components/SalesReportPage.tsx",
-          "operation": "modify",
-          "description": "Add an Actions column (or per-transaction grouped actions) providing Edit and Delete. Wire Edit to open EditSaleModal for the selected transaction and wire Delete to a confirmation flow, call the delete mutation, refetch/invalidate on success, and show a visible error state/message on failures (reuse QueryErrorState and/or Alert components). Verify the component's usage instructions before implementing."
-        }
-      ]
-    },
-    {
-      "id": "REQ-78",
-      "summary": "Add an Export to Excel (.xls) action that downloads the currently filtered Sales Report data.",
-      "acceptanceCriteria": [
-        "The Sales Report page includes an export button for Excel.",
-        "Clicking export downloads a file with the .xls extension.",
-        "The exported content reflects the currently filtered data shown on screen (date-range filter applied)."
-      ],
-      "file_operations": [
-        {
-          "path": "frontend/src/utils/exportToXls.ts",
-          "operation": "create",
-          "description": "Implement a frontend-only .xls export utility that converts the currently displayed (filtered) Sales Report rows into an Excel-compatible download (e.g., HTML table-based XLS) and triggers a file download with the .xls extension."
-        },
-        {
-          "path": "frontend/src/components/SalesReportPage.tsx",
-          "operation": "modify",
-          "description": "Add an \"Export to Excel (.xls)\" button that uses the current filtered dataset (the same rows shown in the table) and calls the export utility to download the file."
+          "description": "Update InventoryReportPage to avoid presenting any authentication-required error state: detect when the thrown error normalizes to an auth/unauthorized classification and override the displayed error title/message to a non-auth (e.g., generic/connection-style) message while keeping the existing Retry behavior (refetch) intact. Keep the existing empty state when data is an empty list. Use existing shadcn-ui composed components already in the file (Card/Table) to maintain consistent UI; verify the component's usage instructions before implementing."
         }
       ]
     }

@@ -1,15 +1,10 @@
 # Specification
 
 ## Summary
-**Goal:** Menampilkan riwayat transaksi penjualan pada submenu **Reports (Laporan) > Laporan Penjualan** dalam aplikasi, lengkap dengan filter tanggal, aksi edit/hapus, dan ekspor Excel.
+**Goal:** Fix the Inventory Report (stock adjustment history) so it can be opened without triggering an authentication error.
 
 **Planned changes:**
-- Tambah view/page baru **Laporan Penjualan (SalesReportPage)** yang terbuka saat klik Navbar > Reports > "Laporan Penjualan" melalui mekanisme view-switching di `App.tsx` (tanpa React Router).
-- Buat UI tabel riwayat transaksi penjualan (read/write) dengan kolom: ID Transaksi, Tanggal & Jam, Metode Pembayaran, Produk, Kuantitas, HPP, Harga Jual, Harga Total (Kuantitas × Harga Jual), termasuk perhitungan total per baris.
-- Tambahkan filter rentang tanggal (from/to) untuk memfilter transaksi berdasarkan timestamp, dengan opsi clear untuk kembali menampilkan semua data.
-- Tambahkan aksi per transaksi: **Edit** dan **Delete**, terhubung ke backend, menampilkan pesan error bila gagal, dan refresh data setelah sukses.
-- Tambahkan dukungan backend (API & penyimpanan data) untuk memuat, memfilter (date range), mengubah, dan menghapus riwayat transaksi penjualan.
-- Pastikan data transaksi yang tersimpan memuat field historis yang diperlukan (timestamp, metode pembayaran, produk/nama, kuantitas, HPP, harga jual saat transaksi) agar laporan tidak bergantung pada data Produk saat ini.
-- Tambahkan aksi **Export to Excel (.xls)** yang mengunduh data laporan sesuai hasil filter yang sedang aktif.
+- Update the backend `getInventoryReports(filter, daysBack)` query to allow anonymous calls while preserving existing filter (`description`) and timeframe (`daysBack`) behavior.
+- Adjust the frontend Reports → Inventory Report view to load using the existing anonymous actor flow and avoid showing authentication-required error states.
 
-**User-visible outcome:** Pengguna dapat membuka halaman **Laporan Penjualan** dari navbar untuk melihat riwayat transaksi penjualan dalam tabel, memfilter berdasarkan rentang tanggal, mengedit/menghapus transaksi, serta mengekspor laporan yang sedang ditampilkan ke file **.xls**.
+**User-visible outcome:** Users can open Reports → Inventory Report and see stock adjustment history (or the normal empty state) without being asked to sign in or encountering an authentication error; temporary backend outages still show the existing connection error UI with Retry.

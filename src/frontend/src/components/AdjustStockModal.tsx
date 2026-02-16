@@ -10,6 +10,7 @@ import {
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
 import { Loader2 } from 'lucide-react';
 import { useAdjustInventoryStock } from '../hooks/useInventory';
 import type { InventoryItem } from '../backend';
@@ -27,12 +28,12 @@ function normalizeErrorMessage(error: unknown): string {
     
     // Normalize authentication errors
     if (message.includes('Unauthorized') || message.includes('not authenticated')) {
-      return 'Anda perlu login terlebih dahulu untuk menyesuaikan stok.';
+      return 'You need to log in first to adjust stock.';
     }
     
     // Normalize trap messages
     if (message.includes('trap')) {
-      return 'Terjadi kesalahan pada server. Silakan coba lagi.';
+      return 'A server error occurred. Please try again.';
     }
     
     return message;
@@ -43,12 +44,14 @@ function normalizeErrorMessage(error: unknown): string {
 
 export default function AdjustStockModal({ open, onOpenChange, item, mode }: AdjustStockModalProps) {
   const [quantity, setQuantity] = useState('');
+  const [description, setDescription] = useState('');
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
   const adjustStockMutation = useAdjustInventoryStock();
 
   const handleClose = () => {
     setQuantity('');
+    setDescription('');
     setErrorMessage(null);
     onOpenChange(false);
   };
@@ -68,11 +71,18 @@ export default function AdjustStockModal({ open, onOpenChange, item, mode }: Adj
         return;
       }
 
+      // Validate description
+      if (!description.trim()) {
+        setErrorMessage('Description is required');
+        return;
+      }
+
       // Call backend
       await adjustStockMutation.mutateAsync({
         itemId: item.id,
         quantity: BigInt(quantityValue),
         isAddition: mode === 'add',
+        description: description.trim(),
       });
 
       // Success - close modal
@@ -84,7 +94,7 @@ export default function AdjustStockModal({ open, onOpenChange, item, mode }: Adj
   };
 
   const title = mode === 'add' ? 'Add Stock' : 'Reduce Stock';
-  const description = mode === 'add' 
+  const description_text = mode === 'add' 
     ? `Add stock to ${item?.itemName || 'item'}` 
     : `Reduce stock from ${item?.itemName || 'item'}`;
 
@@ -93,7 +103,7 @@ export default function AdjustStockModal({ open, onOpenChange, item, mode }: Adj
       <DialogContent className="max-w-md">
         <DialogHeader>
           <DialogTitle>{title}</DialogTitle>
-          <DialogDescription>{description}</DialogDescription>
+          <DialogDescription>{description_text}</DialogDescription>
         </DialogHeader>
 
         <form onSubmit={handleSubmit} id="adjust-stock-form" className="space-y-4">
@@ -115,6 +125,18 @@ export default function AdjustStockModal({ open, onOpenChange, item, mode }: Adj
               value={quantity}
               onChange={(e) => setQuantity(e.target.value)}
               required
+            />
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="description">Description</Label>
+            <Textarea
+              id="description"
+              placeholder="Enter description for this stock adjustment"
+              value={description}
+              onChange={(e) => setDescription(e.target.value)}
+              required
+              rows={3}
             />
           </div>
 

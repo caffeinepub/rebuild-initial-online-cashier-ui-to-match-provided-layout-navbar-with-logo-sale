@@ -23,9 +23,17 @@ export interface DashboardSummary {
     todayRevenue: bigint;
     totalQuantitySold: bigint;
 }
+export interface CashTransaction {
+    id: bigint;
+    transactionType: TransactionType;
+    description: string;
+    timestamp: Time;
+    amount: bigint;
+}
 export interface InventoryItem {
     id: bigint;
     reject: bigint;
+    minimumStock: bigint;
     initialStock: bigint;
     size: string;
     unit: string;
@@ -48,6 +56,13 @@ export interface SaleRecord {
     amount: bigint;
     totalQuantity: bigint;
 }
+export interface InventoryReportEntry {
+    description: string;
+    timestamp: Time;
+    itemName: string;
+    itemSize: string;
+    quantity: bigint;
+}
 export interface SaleItem {
     cogs: bigint;
     productId: bigint;
@@ -59,6 +74,7 @@ export interface Product {
     id: bigint;
     name: string;
     size: string;
+    category: string;
     salePrice: bigint;
     image: ExternalBlob;
 }
@@ -68,27 +84,44 @@ export enum PaymentMethod {
     dana = "dana",
     qris = "qris"
 }
+export enum TransactionType {
+    expense = "expense",
+    income = "income"
+}
 export enum UserRole {
     admin = "admin",
     user = "user",
     guest = "guest"
 }
 export interface backendInterface {
-    addInventoryItem(itemName: string, category: string, size: string, unit: string, initialStock: bigint, reject: bigint, finalStock: bigint): Promise<bigint | null>;
-    addProduct(name: string, size: string, salePrice: bigint, image: ExternalBlob): Promise<bigint>;
-    adjustInventoryStock(itemId: bigint, quantity: bigint, isAddition: boolean): Promise<boolean>;
+    addCashTransaction(amount: bigint, transactionType: TransactionType, description: string): Promise<bigint>;
+    addInventoryItem(itemName: string, category: string, size: string, unit: string, initialStock: bigint, reject: bigint, finalStock: bigint, minimumStock: bigint): Promise<bigint | null>;
+    addProduct(name: string, size: string, category: string, salePrice: bigint, image: ExternalBlob): Promise<bigint>;
+    adjustInventoryStock(itemId: bigint, quantity: bigint, isAddition: boolean, description: string): Promise<boolean>;
     assignCallerUserRole(user: Principal, role: UserRole): Promise<void>;
+    deleteCashTransaction(id: bigint): Promise<boolean>;
     deleteSale(id: bigint): Promise<boolean>;
     fetchDashboardSummary(): Promise<DashboardSummary>;
+    getAllCashTransactions(): Promise<Array<CashTransaction>>;
     getCallerUserProfile(): Promise<UserProfile | null>;
     getCallerUserRole(): Promise<UserRole>;
+    getCashBalance(): Promise<bigint>;
+    getCashTransactionsByDate(startDate: Time, endDate: Time): Promise<Array<CashTransaction>>;
+    getDailyBalances(startDate: Time, endDate: Time): Promise<Array<[Time, bigint]>>;
+    getInventoryReports(filter: string | null, daysBack: bigint | null): Promise<Array<InventoryReportEntry>>;
+    getInventoryUsageStats(category: string | null, size: string | null, fromTimestamp: Time | null, toTimestamp: Time | null): Promise<bigint>;
     getUserProfile(user: Principal): Promise<UserProfile | null>;
     isCallerAdmin(): Promise<boolean>;
+    isInventoryLow(): Promise<boolean>;
     listInventoryItems(): Promise<Array<InventoryItem>>;
+    listOldProducts(): Promise<Array<[bigint, Product]>>;
     listProducts(): Promise<Array<Product>>;
+    listProductsDescending(): Promise<Array<[bigint, Product]>>;
+    listSalesDescending(): Promise<Array<[bigint, SaleRecord]>>;
     querySales(fromTimestamp: Time, toTimestamp: Time): Promise<Array<SaleRecord>>;
     recordSale(items: Array<SaleItem>, paymentMethod: PaymentMethod, totalTax: bigint): Promise<bigint>;
     saveCallerUserProfile(profile: UserProfile): Promise<void>;
-    updateInventoryItem(id: bigint, itemName: string, category: string, size: string, unit: string, initialStock: bigint, reject: bigint, finalStock: bigint): Promise<boolean>;
+    updateCashTransaction(id: bigint, amount: bigint, transactionType: TransactionType, description: string): Promise<boolean>;
+    updateInventoryItem(id: bigint, itemName: string, category: string, size: string, unit: string, initialStock: bigint, reject: bigint, finalStock: bigint, minimumStock: bigint): Promise<boolean>;
     updateSale(id: bigint, items: Array<SaleItem>, paymentMethod: PaymentMethod, totalTax: bigint): Promise<boolean>;
 }

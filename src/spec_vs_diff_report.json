@@ -1,81 +1,40 @@
 {
   "kind": "spec_vs_diff_report",
   "version": "1.0",
-  "generatedAt": "2026-02-15T13:53:41.374Z",
-  "summary": "Sales Report view/page, report query hook, edit/delete mutations, export-to-XLS utility, and backend schema additions/migration were added. However, the date-range \"clear\" behavior and delete-failure UX do not fully meet the BuildRequest, and the backend sale record fields intended for historical accuracy (COGS/HPP and product name at time of sale) appear not to be populated reliably based on the diff summary. Several unrelated changes (role/permission gating removals, theme/CSS tweaks, other page error-handling changes, footer attribution) were also introduced beyond the requested scope.",
+  "generatedAt": "2026-02-16T22:22:22.936Z",
+  "summary": "Backend changes needed to make `getInventoryReports` callable anonymously are not evidenced in the provided backend diff snippet; frontend Inventory Report page improves error handling/empty state, but the diff does not show changes ensuring the hook uses the anonymous actor flow (no sign-in prompt). There are unrelated inventory \"minimumStock\" model changes present in the backend diff that were not requested.",
   "missing_requirements": [
     {
-      "id": "REQ-74",
-      "requirement": "Clearing the date-range filter returns the table to showing all available sales history.",
-      "reason": "In SalesReportPage, when from/to are cleared, the computed query range defaults to `oneYearAgo`..`now` rather than an unbounded/all-history range, so clearing the filter will still exclude older transactions.",
+      "id": "REQ-1",
+      "requirement": "Update the backend inventory report query so that opening the Inventory Report page does not require authentication (anonymous users must be able to call `getInventoryReports`).",
+      "reason": "The provided `backend/main.mo` diff excerpt shows authorization checks on user profile methods, but does not show any change to `getInventoryReports` or evidence that it no longer traps/requires permissions for anonymous callers, nor that filter/timeframe behavior is preserved.",
       "evidence": [
-        "frontend/src/components/SalesReportPage.tsx"
+        "backend/main.mo"
       ]
     },
     {
-      "id": "REQ-75",
-      "requirement": "On backend failure (especially for Delete), the page shows a clear error message and does not silently succeed.",
-      "reason": "The delete handler catches errors and only logs to console (`console.error('Failed to delete sale:', error)`), with no visible user-facing error message indicated in the diff summary.",
+      "id": "REQ-2",
+      "requirement": "Ensure the frontend Inventory Report view loads reliably and does not display any authentication-required error state when opened from Reports → Inventory Report.",
+      "reason": "`InventoryReportPage.tsx` adds an auth-error override to show a generic error and uses `refetch` for Retry, but the diff does not include the `useInventoryReport` hook implementation or any change proving the page uses the existing anonymous actor flow (i.e., no Internet Identity sign-in prompt is shown).",
       "evidence": [
-        "frontend/src/components/SalesReportPage.tsx"
-      ]
-    },
-    {
-      "id": "REQ-77",
-      "requirement": "Backend sales record data must include historical fields (COGS/HPP, sale price at time of sale, and product name or resolvable identifier) so the report does not depend on current Product data for historical accuracy.",
-      "reason": "Although new fields exist, the diff indicates they are not properly populated: `TransactionPage` records sales with `cogs: BigInt(0)` and may set `productName` to empty; the migration sets `productName = \"\"` and computes `cogs` as `unitPrice * quantity` (which is line total, not COGS). This suggests historical COGS and product naming are not reliably stored for accurate reporting.",
-      "evidence": [
-        "frontend/src/components/TransactionPage.tsx",
-        "backend/migration.mo"
+        "frontend/src/components/InventoryReportPage.tsx"
       ]
     }
   ],
   "hallucinated_features": [
     {
-      "description": "Removed/relaxed role-based gating in product/inventory hooks and normalized admin-related messaging across multiple pages.",
-      "reason": "BuildRequest scope is Sales Report integration; it explicitly lists changing existing flows beyond what’s required as a non-goal, yet multiple unrelated permission/role behaviors were altered per the diff summary.",
+      "description": "Inventory model updated to include a `minimumStock` field.",
+      "reason": "The BuildRequest is limited to fixing Inventory Report authentication/access and explicitly excludes adding new inventory features; adding `minimumStock` is unrelated to the requested Inventory Report auth fix.",
       "evidence": [
-        "frontend-file-summaries.txt (useProducts.ts/useInventory.ts/ProductFormModal.tsx/InventoryFormModal.tsx/AdjustStockModal.tsx/EditInventoryItemModal.tsx)"
-      ]
-    },
-    {
-      "description": "Global theme/CSS changes (OKLCH color system, brand styling adjustments).",
-      "reason": "Not requested by REQ-72..REQ-78; appears as additional UI theming work outside Sales Report requirements.",
-      "evidence": [
-        "frontend/src/index.css",
-        "frontend-file-summaries.txt"
-      ]
-    },
-    {
-      "description": "Added/changed footer content with Caffeine attribution and Heart icon.",
-      "reason": "Not part of Sales Report requirements; introduced as unrelated UI change.",
-      "evidence": [
-        "frontend/src/App.tsx"
-      ]
-    },
-    {
-      "description": "Improved error handling and retry behavior on Dashboard/Products/Inventory pages (invalidating actor query before refetch).",
-      "reason": "Not requested as part of Sales Report work and explicitly outside desired scope unless required for integration; appears as extra changes.",
-      "evidence": [
-        "frontend-file-summaries.txt (Dashboard.tsx, ProductsPage.tsx, InventoryPage.tsx)"
+        "backend/main.mo"
       ]
     }
   ],
-  "confidence": 0.74,
+  "confidence": 0.62,
   "changed_files": [
     "backend/main.mo",
-    "backend/migration.mo",
     "frontend-file-summaries.txt",
-    "frontend/src/App.tsx",
-    "frontend/src/components/EditSaleModal.tsx",
-    "frontend/src/components/Navbar.tsx",
-    "frontend/src/components/SalesReportPage.tsx",
-    "frontend/src/components/TransactionPage.tsx",
-    "frontend/src/hooks/useRecordSale.ts",
-    "frontend/src/hooks/useSalesMutations.ts",
-    "frontend/src/hooks/useSalesReport.ts",
-    "frontend/src/utils/exportToXls.ts",
-    "frontend/src/utils/salesFormat.ts",
+    "frontend/src/components/InventoryReportPage.tsx",
     "project_state.json"
   ]
 }

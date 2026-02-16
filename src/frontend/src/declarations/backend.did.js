@@ -19,6 +19,10 @@ export const _CaffeineStorageRefillResult = IDL.Record({
   'success' : IDL.Opt(IDL.Bool),
   'topped_up_amount' : IDL.Opt(IDL.Nat),
 });
+export const TransactionType = IDL.Variant({
+  'expense' : IDL.Null,
+  'income' : IDL.Null,
+});
 export const ExternalBlob = IDL.Vec(IDL.Nat8);
 export const UserRole = IDL.Variant({
   'admin' : IDL.Null,
@@ -36,10 +40,26 @@ export const DashboardSummary = IDL.Record({
   'todayRevenue' : IDL.Nat,
   'totalQuantitySold' : IDL.Nat,
 });
+export const Time = IDL.Int;
+export const CashTransaction = IDL.Record({
+  'id' : IDL.Nat,
+  'transactionType' : TransactionType,
+  'description' : IDL.Text,
+  'timestamp' : Time,
+  'amount' : IDL.Nat,
+});
 export const UserProfile = IDL.Record({ 'name' : IDL.Text });
+export const InventoryReportEntry = IDL.Record({
+  'description' : IDL.Text,
+  'timestamp' : Time,
+  'itemName' : IDL.Text,
+  'itemSize' : IDL.Text,
+  'quantity' : IDL.Nat,
+});
 export const InventoryItem = IDL.Record({
   'id' : IDL.Nat,
   'reject' : IDL.Nat,
+  'minimumStock' : IDL.Nat,
   'initialStock' : IDL.Nat,
   'size' : IDL.Text,
   'unit' : IDL.Text,
@@ -51,10 +71,10 @@ export const Product = IDL.Record({
   'id' : IDL.Nat,
   'name' : IDL.Text,
   'size' : IDL.Text,
+  'category' : IDL.Text,
   'salePrice' : IDL.Nat,
   'image' : ExternalBlob,
 });
-export const Time = IDL.Int;
 export const PaymentMethod = IDL.Variant({
   'trf' : IDL.Null,
   'tunai' : IDL.Null,
@@ -106,34 +126,91 @@ export const idlService = IDL.Service({
     ),
   '_caffeineStorageUpdateGatewayPrincipals' : IDL.Func([], [], []),
   '_initializeAccessControlWithSecret' : IDL.Func([IDL.Text], [], []),
+  'addCashTransaction' : IDL.Func(
+      [IDL.Nat, TransactionType, IDL.Text],
+      [IDL.Nat],
+      [],
+    ),
   'addInventoryItem' : IDL.Func(
-      [IDL.Text, IDL.Text, IDL.Text, IDL.Text, IDL.Nat, IDL.Nat, IDL.Nat],
+      [
+        IDL.Text,
+        IDL.Text,
+        IDL.Text,
+        IDL.Text,
+        IDL.Nat,
+        IDL.Nat,
+        IDL.Nat,
+        IDL.Nat,
+      ],
       [IDL.Opt(IDL.Nat)],
       [],
     ),
   'addProduct' : IDL.Func(
-      [IDL.Text, IDL.Text, IDL.Nat, ExternalBlob],
+      [IDL.Text, IDL.Text, IDL.Text, IDL.Nat, ExternalBlob],
       [IDL.Nat],
       [],
     ),
   'adjustInventoryStock' : IDL.Func(
-      [IDL.Nat, IDL.Nat, IDL.Bool],
+      [IDL.Nat, IDL.Nat, IDL.Bool, IDL.Text],
       [IDL.Bool],
       [],
     ),
   'assignCallerUserRole' : IDL.Func([IDL.Principal, UserRole], [], []),
+  'deleteCashTransaction' : IDL.Func([IDL.Nat], [IDL.Bool], []),
   'deleteSale' : IDL.Func([IDL.Nat], [IDL.Bool], []),
   'fetchDashboardSummary' : IDL.Func([], [DashboardSummary], ['query']),
+  'getAllCashTransactions' : IDL.Func(
+      [],
+      [IDL.Vec(CashTransaction)],
+      ['query'],
+    ),
   'getCallerUserProfile' : IDL.Func([], [IDL.Opt(UserProfile)], ['query']),
   'getCallerUserRole' : IDL.Func([], [UserRole], ['query']),
+  'getCashBalance' : IDL.Func([], [IDL.Nat], ['query']),
+  'getCashTransactionsByDate' : IDL.Func(
+      [Time, Time],
+      [IDL.Vec(CashTransaction)],
+      ['query'],
+    ),
+  'getDailyBalances' : IDL.Func(
+      [Time, Time],
+      [IDL.Vec(IDL.Tuple(Time, IDL.Nat))],
+      ['query'],
+    ),
+  'getInventoryReports' : IDL.Func(
+      [IDL.Opt(IDL.Text), IDL.Opt(IDL.Nat)],
+      [IDL.Vec(InventoryReportEntry)],
+      ['query'],
+    ),
+  'getInventoryUsageStats' : IDL.Func(
+      [IDL.Opt(IDL.Text), IDL.Opt(IDL.Text), IDL.Opt(Time), IDL.Opt(Time)],
+      [IDL.Nat],
+      [],
+    ),
   'getUserProfile' : IDL.Func(
       [IDL.Principal],
       [IDL.Opt(UserProfile)],
       ['query'],
     ),
   'isCallerAdmin' : IDL.Func([], [IDL.Bool], ['query']),
+  'isInventoryLow' : IDL.Func([], [IDL.Bool], ['query']),
   'listInventoryItems' : IDL.Func([], [IDL.Vec(InventoryItem)], ['query']),
+  'listOldProducts' : IDL.Func(
+      [],
+      [IDL.Vec(IDL.Tuple(IDL.Nat, Product))],
+      ['query'],
+    ),
   'listProducts' : IDL.Func([], [IDL.Vec(Product)], ['query']),
+  'listProductsDescending' : IDL.Func(
+      [],
+      [IDL.Vec(IDL.Tuple(IDL.Nat, Product))],
+      ['query'],
+    ),
+  'listSalesDescending' : IDL.Func(
+      [],
+      [IDL.Vec(IDL.Tuple(IDL.Nat, SaleRecord))],
+      ['query'],
+    ),
   'querySales' : IDL.Func([Time, Time], [IDL.Vec(SaleRecord)], ['query']),
   'recordSale' : IDL.Func(
       [IDL.Vec(SaleItem), PaymentMethod, IDL.Nat],
@@ -141,6 +218,11 @@ export const idlService = IDL.Service({
       [],
     ),
   'saveCallerUserProfile' : IDL.Func([UserProfile], [], []),
+  'updateCashTransaction' : IDL.Func(
+      [IDL.Nat, IDL.Nat, TransactionType, IDL.Text],
+      [IDL.Bool],
+      [],
+    ),
   'updateInventoryItem' : IDL.Func(
       [
         IDL.Nat,
@@ -148,6 +230,7 @@ export const idlService = IDL.Service({
         IDL.Text,
         IDL.Text,
         IDL.Text,
+        IDL.Nat,
         IDL.Nat,
         IDL.Nat,
         IDL.Nat,
@@ -176,6 +259,10 @@ export const idlFactory = ({ IDL }) => {
     'success' : IDL.Opt(IDL.Bool),
     'topped_up_amount' : IDL.Opt(IDL.Nat),
   });
+  const TransactionType = IDL.Variant({
+    'expense' : IDL.Null,
+    'income' : IDL.Null,
+  });
   const ExternalBlob = IDL.Vec(IDL.Nat8);
   const UserRole = IDL.Variant({
     'admin' : IDL.Null,
@@ -193,10 +280,26 @@ export const idlFactory = ({ IDL }) => {
     'todayRevenue' : IDL.Nat,
     'totalQuantitySold' : IDL.Nat,
   });
+  const Time = IDL.Int;
+  const CashTransaction = IDL.Record({
+    'id' : IDL.Nat,
+    'transactionType' : TransactionType,
+    'description' : IDL.Text,
+    'timestamp' : Time,
+    'amount' : IDL.Nat,
+  });
   const UserProfile = IDL.Record({ 'name' : IDL.Text });
+  const InventoryReportEntry = IDL.Record({
+    'description' : IDL.Text,
+    'timestamp' : Time,
+    'itemName' : IDL.Text,
+    'itemSize' : IDL.Text,
+    'quantity' : IDL.Nat,
+  });
   const InventoryItem = IDL.Record({
     'id' : IDL.Nat,
     'reject' : IDL.Nat,
+    'minimumStock' : IDL.Nat,
     'initialStock' : IDL.Nat,
     'size' : IDL.Text,
     'unit' : IDL.Text,
@@ -208,10 +311,10 @@ export const idlFactory = ({ IDL }) => {
     'id' : IDL.Nat,
     'name' : IDL.Text,
     'size' : IDL.Text,
+    'category' : IDL.Text,
     'salePrice' : IDL.Nat,
     'image' : ExternalBlob,
   });
-  const Time = IDL.Int;
   const PaymentMethod = IDL.Variant({
     'trf' : IDL.Null,
     'tunai' : IDL.Null,
@@ -263,34 +366,91 @@ export const idlFactory = ({ IDL }) => {
       ),
     '_caffeineStorageUpdateGatewayPrincipals' : IDL.Func([], [], []),
     '_initializeAccessControlWithSecret' : IDL.Func([IDL.Text], [], []),
+    'addCashTransaction' : IDL.Func(
+        [IDL.Nat, TransactionType, IDL.Text],
+        [IDL.Nat],
+        [],
+      ),
     'addInventoryItem' : IDL.Func(
-        [IDL.Text, IDL.Text, IDL.Text, IDL.Text, IDL.Nat, IDL.Nat, IDL.Nat],
+        [
+          IDL.Text,
+          IDL.Text,
+          IDL.Text,
+          IDL.Text,
+          IDL.Nat,
+          IDL.Nat,
+          IDL.Nat,
+          IDL.Nat,
+        ],
         [IDL.Opt(IDL.Nat)],
         [],
       ),
     'addProduct' : IDL.Func(
-        [IDL.Text, IDL.Text, IDL.Nat, ExternalBlob],
+        [IDL.Text, IDL.Text, IDL.Text, IDL.Nat, ExternalBlob],
         [IDL.Nat],
         [],
       ),
     'adjustInventoryStock' : IDL.Func(
-        [IDL.Nat, IDL.Nat, IDL.Bool],
+        [IDL.Nat, IDL.Nat, IDL.Bool, IDL.Text],
         [IDL.Bool],
         [],
       ),
     'assignCallerUserRole' : IDL.Func([IDL.Principal, UserRole], [], []),
+    'deleteCashTransaction' : IDL.Func([IDL.Nat], [IDL.Bool], []),
     'deleteSale' : IDL.Func([IDL.Nat], [IDL.Bool], []),
     'fetchDashboardSummary' : IDL.Func([], [DashboardSummary], ['query']),
+    'getAllCashTransactions' : IDL.Func(
+        [],
+        [IDL.Vec(CashTransaction)],
+        ['query'],
+      ),
     'getCallerUserProfile' : IDL.Func([], [IDL.Opt(UserProfile)], ['query']),
     'getCallerUserRole' : IDL.Func([], [UserRole], ['query']),
+    'getCashBalance' : IDL.Func([], [IDL.Nat], ['query']),
+    'getCashTransactionsByDate' : IDL.Func(
+        [Time, Time],
+        [IDL.Vec(CashTransaction)],
+        ['query'],
+      ),
+    'getDailyBalances' : IDL.Func(
+        [Time, Time],
+        [IDL.Vec(IDL.Tuple(Time, IDL.Nat))],
+        ['query'],
+      ),
+    'getInventoryReports' : IDL.Func(
+        [IDL.Opt(IDL.Text), IDL.Opt(IDL.Nat)],
+        [IDL.Vec(InventoryReportEntry)],
+        ['query'],
+      ),
+    'getInventoryUsageStats' : IDL.Func(
+        [IDL.Opt(IDL.Text), IDL.Opt(IDL.Text), IDL.Opt(Time), IDL.Opt(Time)],
+        [IDL.Nat],
+        [],
+      ),
     'getUserProfile' : IDL.Func(
         [IDL.Principal],
         [IDL.Opt(UserProfile)],
         ['query'],
       ),
     'isCallerAdmin' : IDL.Func([], [IDL.Bool], ['query']),
+    'isInventoryLow' : IDL.Func([], [IDL.Bool], ['query']),
     'listInventoryItems' : IDL.Func([], [IDL.Vec(InventoryItem)], ['query']),
+    'listOldProducts' : IDL.Func(
+        [],
+        [IDL.Vec(IDL.Tuple(IDL.Nat, Product))],
+        ['query'],
+      ),
     'listProducts' : IDL.Func([], [IDL.Vec(Product)], ['query']),
+    'listProductsDescending' : IDL.Func(
+        [],
+        [IDL.Vec(IDL.Tuple(IDL.Nat, Product))],
+        ['query'],
+      ),
+    'listSalesDescending' : IDL.Func(
+        [],
+        [IDL.Vec(IDL.Tuple(IDL.Nat, SaleRecord))],
+        ['query'],
+      ),
     'querySales' : IDL.Func([Time, Time], [IDL.Vec(SaleRecord)], ['query']),
     'recordSale' : IDL.Func(
         [IDL.Vec(SaleItem), PaymentMethod, IDL.Nat],
@@ -298,6 +458,11 @@ export const idlFactory = ({ IDL }) => {
         [],
       ),
     'saveCallerUserProfile' : IDL.Func([UserProfile], [], []),
+    'updateCashTransaction' : IDL.Func(
+        [IDL.Nat, IDL.Nat, TransactionType, IDL.Text],
+        [IDL.Bool],
+        [],
+      ),
     'updateInventoryItem' : IDL.Func(
         [
           IDL.Nat,
@@ -305,6 +470,7 @@ export const idlFactory = ({ IDL }) => {
           IDL.Text,
           IDL.Text,
           IDL.Text,
+          IDL.Nat,
           IDL.Nat,
           IDL.Nat,
           IDL.Nat,

@@ -1,156 +1,57 @@
 {
   "kind": "build_request",
-  "title": "Show sales transaction history inside Reports > Sales Report submenu",
-  "priority": "normal",
+  "title": "Fix authentication error on Reports → Inventory Report (stock adjustment history)",
+  "projectName": "Natea Fresh POS",
+  "priority": "high",
   "requirements": [
     {
-      "id": "REQ-72",
-      "text": "Add a new Sales Report view that is opened when the user clicks Navbar > Reports (Laporan) > \"Laporan Penjualan\"; this view must render a dedicated page component (e.g., SalesReportPage) inside the existing App.tsx view-switching (no React Router).",
-      "target": "frontend",
-      "source": {
-        "messageIds": [
-          "msg-1"
-        ],
-        "quotes": [
-          "masukan riwayat transaksi ke dalam sub menu laporan penjualan"
-        ]
-      },
-      "acceptanceCriteria": [
-        "Clicking the \"Laporan Penjualan\" submenu item changes the main content area to a Sales Report page (instead of only logging to console).",
-        "Existing views (Dashboard/Products/Inventory/Transactions) continue to work and remain selectable via the navbar."
-      ]
-    },
-    {
-      "id": "REQ-73",
-      "text": "Implement the Sales Report page UI to display a read/write table of saved sales transactions (sales history) with these columns in order: Transaction ID, Transaction date & time, Payment method, Product, Quantity, COGS (HPP), Sale price, Line total (Quantity × Sale price).",
-      "target": "frontend",
-      "source": {
-        "messageIds": [
-          "msg-1"
-        ],
-        "quotes": [
-          "masukan riwayat transaksi ke dalam sub menu laporan penjualan"
-        ]
-      },
-      "acceptanceCriteria": [
-        "The Sales Report page shows a table with the specified columns and renders one row per sold line-item (or an equivalent representation that still displays per-product quantity/price/line-total).",
-        "The UI labels on the page remain Indonesian (e.g., \"Laporan Penjualan\", \"Metode Pembayaran\", \"Tanggal & Jam\", \"Harga Total\").",
-        "Line total is calculated as quantity × sale price and matches the displayed values."
-      ]
-    },
-    {
-      "id": "REQ-74",
-      "text": "Add a date-range filter on the Sales Report page that filters the displayed sales history by transaction timestamp; the filter must cover day/month/year via a single date range (from/to).",
-      "target": "frontend",
-      "source": {
-        "messageIds": [
-          "msg-1"
-        ],
-        "quotes": [
-          "masukan riwayat transaksi ke dalam sub menu laporan penjualan"
-        ]
-      },
-      "acceptanceCriteria": [
-        "The Sales Report page provides a from/to date range filter.",
-        "Applying the filter updates the table to only include transactions within the selected date range.",
-        "Clearing the filter returns the table to showing all available history."
-      ]
-    },
-    {
-      "id": "REQ-75",
-      "text": "Add per-transaction actions on the Sales Report page to Edit and Delete a saved sales transaction; both actions must persist to the backend and refresh the report list after success.",
-      "target": "both",
-      "source": {
-        "messageIds": [
-          "msg-1"
-        ],
-        "quotes": [
-          "masukan riwayat transaksi ke dalam sub menu laporan penjualan"
-        ]
-      },
-      "acceptanceCriteria": [
-        "Each transaction entry in the report has an Edit action and a Delete action.",
-        "Deleting a transaction removes it from the backend and it no longer appears after the list refreshes.",
-        "Editing a transaction updates the backend record and the report reflects the updated values after success.",
-        "On backend failure, the page shows a clear error message and does not silently succeed."
-      ]
-    },
-    {
-      "id": "REQ-76",
-      "text": "Add backend canister APIs and data support needed for Sales Report to load, filter, edit, and delete sales history, including exposing a list/query method that supports date-range filtering by timestamp.",
+      "id": "REQ-1",
+      "text": "Update the backend inventory report query so that opening the Inventory Report page does not require authentication (anonymous users must be able to call `getInventoryReports`).",
       "target": "backend",
       "source": {
         "messageIds": [
-          "msg-1"
+          "msg-10"
         ],
         "quotes": [
-          "masukan riwayat transaksi ke dalam sub menu laporan penjualan"
+          "di dalam menu laporan, ada sub menu Laporan Inventori. Isinya histori perubahan stok. Ketika di buka, error autentifikasi"
         ]
       },
       "acceptanceCriteria": [
-        "Backend exposes a query method to return sales history (with timestamps, payment method, and line items) and supports filtering by date range.",
-        "Backend exposes update and delete methods for a saved sale record.",
-        "Frontend can call these methods successfully and render real backend data (not placeholders)."
+        "Calling `getInventoryReports(filter, daysBack)` with an anonymous principal returns data (or an empty list) and does not trap with an Unauthorized/authentication error.",
+        "The backend preserves the existing filter behavior (`filter` matches `description`) and timeframe behavior (`daysBack`) for `getInventoryReports`."
       ]
     },
     {
-      "id": "REQ-77",
-      "text": "Ensure the backend sales record data includes all fields required by the Sales Report table (including COGS/HPP and sale price at time of sale) so the report does not depend on current Product data for historical accuracy.",
-      "target": "backend",
-      "source": {
-        "messageIds": [
-          "msg-1"
-        ],
-        "quotes": [
-          "masukan riwayat transaksi ke dalam sub menu laporan penjualan"
-        ]
-      },
-      "acceptanceCriteria": [
-        "A recorded sale contains enough information to render: payment method, timestamp, product name (or resolvable identifier), quantity, COGS/HPP, sale price, and computed totals.",
-        "Sales Report can display historical values even if the related product later changes."
-      ]
-    },
-    {
-      "id": "REQ-78",
-      "text": "Add an \"Export to Excel (.xls)\" action on the Sales Report page that downloads the currently filtered sales report data into an .xls file.",
+      "id": "REQ-2",
+      "text": "Ensure the frontend Inventory Report view loads reliably and does not display any authentication-required error state when opened from Reports → Inventory Report.",
       "target": "frontend",
       "source": {
         "messageIds": [
-          "msg-1"
+          "msg-10"
         ],
         "quotes": [
-          "masukan riwayat transaksi ke dalam sub menu laporan penjualan"
+          "Ketika di buka, error autentifikasi"
         ]
       },
       "acceptanceCriteria": [
-        "The Sales Report page includes an export button for Excel.",
-        "Clicking export downloads a file with the .xls extension.",
-        "The exported content reflects the currently filtered data shown on screen (date-range filter applied)."
+        "Navigating to Reports → Inventory Report renders the Inventory Report page and attempts to fetch data using the existing anonymous actor flow (no Internet Identity sign-in prompt is shown).",
+        "If there are no report entries, the page shows the existing empty state message rather than an authentication error.",
+        "If the backend is temporarily unavailable, the page shows the existing connection error UI with a working Retry that re-attempts the query."
       ]
     }
   ],
   "constraints": [
-    "Do not edit any files under frontend/src/components/ui (Shadcn UI components are read-only).",
-    "Do not edit immutable frontend hook files listed in SYSTEM_CONTEXT. Compose new hooks/components instead if needed.",
-    "Backend must remain a single Motoko actor in backend/main.mo; only add backend/migration.mo if a stable-state migration is required due to schema changes."
+    "Do not edit files under `frontend/src/components/ui` (compose existing UI components instead).",
+    "Do not edit the immutable hooks listed in SYSTEM_CONTEXT (e.g., `frontend/src/hooks/useInternetIdentity.ts(x)`, `frontend/src/hooks/useActor.ts`, `frontend/src/main.tsx`).",
+    "Backend must remain a single Motoko actor in `backend/main.mo`; add `backend/migration.mo` only if a state upgrade is required (not expected for this change)."
   ],
   "nonGoals": [
-    "Implementing the other Reports submenu pages (Inventory Report, Expense Report, Attendance Report) beyond placeholders.",
-    "Changing the existing Dashboard/Products/Inventory/Transactions flows beyond what is required for Sales Report integration.",
-    "Adding external databases, third-party services, or non-Internet-Computer backends."
+    "Implementing a full login/logout flow or enforcing role-based access control in the UI.",
+    "Changing other report submenus (Sales Report, Expense Report, Attendance Report) beyond what is necessary to fix Inventory Report access.",
+    "Adding new report types or new inventory history features beyond fixing the current Inventory Report access error."
   ],
   "imageRequirements": {
     "required": [],
     "edits": []
-  },
-  "userProfileUpdate": {
-    "goalsToAdd": [],
-    "goalsToRemove": [],
-    "preferencesToAdd": [],
-    "preferencesToRemove": [],
-    "miscToAdd": [],
-    "miscToRemove": [],
-    "fieldsToSet": {},
-    "fieldsToDelete": []
   }
 }

@@ -15,9 +15,9 @@ export function useUpdateSale() {
 
   return useMutation({
     mutationFn: async ({ id, items, paymentMethod, totalTax }: UpdateSaleParams) => {
-      if (!actor) throw new Error('Actor belum siap');
+      if (!actor) throw new Error('Service not ready');
       const success = await actor.updateSale(id, items, paymentMethod, totalTax);
-      if (!success) throw new Error('Gagal mengupdate transaksi');
+      if (!success) throw new Error('Failed to update transaction');
       return success;
     },
     onSuccess: () => {
@@ -33,9 +33,9 @@ export function useDeleteSale() {
 
   return useMutation({
     mutationFn: async (id: bigint) => {
-      if (!actor) throw new Error('Actor belum siap');
+      if (!actor) throw new Error('Service not ready');
       const success = await actor.deleteSale(id);
-      if (!success) throw new Error('Gagal menghapus transaksi');
+      if (!success) throw new Error('Failed to delete transaction');
       return success;
     },
     onSuccess: () => {

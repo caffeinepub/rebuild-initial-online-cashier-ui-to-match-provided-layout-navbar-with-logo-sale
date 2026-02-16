@@ -1,16 +1,24 @@
+import { useEffect, useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Banknote, Package, Wallet, Smartphone, QrCode, CreditCard } from 'lucide-react';
 import { useDashboardSummary } from '../hooks/useDashboardSummary';
-import { useInternetIdentity } from '../hooks/useInternetIdentity';
+import { useInventory } from '../hooks/useInventory';
 import { Loader2 } from 'lucide-react';
 import QueryErrorState from './QueryErrorState';
-import { useQueryClient } from '@tanstack/react-query';
+import SignInRequiredState from './SignInRequiredState';
+import LowStockWarningDialog from './LowStockWarningDialog';
+import { useInvalidateActorQueries } from '../hooks/useInvalidateActorQueries';
+import { normalizeErrorMessage } from '../utils/errorMessage';
+import { useInternetIdentity } from '../hooks/useInternetIdentity';
+import type { InventoryItem } from '../backend';
 
 export default function Dashboard() {
   const { data: summary, isLoading, error, refetch } = useDashboardSummary();
+  const { data: inventory, isLoading: inventoryLoading } = useInventory();
+  const { invalidateActorQueries } = useInvalidateActorQueries();
   const { identity } = useInternetIdentity();
-  const queryClient = useQueryClient();
-  const isAuthenticated = !!identity;
+  const [showLowStockDialog, setShowLowStockDialog] = useState(false);
 
   const formatCurrency = (value: bigint | number) => {
     const numValue = typeof value === 'bigint' ? Number(value) : value;
@@ -28,9 +36,22 @@ export default function Dashboard() {
     { id: 'trf', label: 'TRF', icon: CreditCard, value: summary?.paymentMethodTotals.trf || BigInt(0) },
   ];
 
+  // Compute low stock items: finalStock <= minimumStock
+  const lowStockItems: InventoryItem[] = inventory?.filter(
+    (item) => Number(item.finalStock) <= Number(item.minimumStock)
+  ) || [];
+
+  // Auto-show dialog when low stock items exist
+  useEffect(() => {
+    if (!inventoryLoading && lowStockItems.length > 0) {
+      setShowLowStockDialog(true);
+    } else {
+      setShowLowStockDialog(false);
+    }
+  }, [inventoryLoading, lowStockItems.length]);
+
   const handleRetry = async () => {
-    // Invalidate actor query to trigger re-initialization, then refetch dashboard data
-    await queryClient.invalidateQueries({ queryKey: ['actor'] });
+    await invalidateActorQueries();
     await refetch();
   };
 
@@ -43,13 +64,22 @@ export default function Dashboard() {
   }
 
   if (error) {
+    const normalizedError = normalizeErrorMessage(error);
+    
+    // Show sign-in required state if it's an auth error and user is not authenticated
+    if (normalizedError.isAuthError && !identity) {
+      return (
+        <SignInRequiredState
+          title="Sign In to View Dashboard"
+          description="You need to sign in with Internet Identity to view the dashboard and sales data."
+        />
+      );
+    }
+
     return (
       <QueryErrorState
         error={error}
         onRetry={handleRetry}
-        title="Failed to load dashboard"
-        message="Unable to load dashboard data. Please try again."
-        isAuthenticated={isAuthenticated}
       />
     );
   }
@@ -106,6 +136,58 @@ export default function Dashboard() {
           })}
         </div>
       </div>
+
+      {/* Inventory List Section */}
+      <div>
+        <h2 className="text-xl font-semibold mb-4">Daftar Inventori</h2>
+        <Card>
+          <CardContent className="p-0">
+            {inventoryLoading ? (
+              <div className="flex items-center justify-center py-8">
+                <Loader2 className="h-6 w-6 animate-spin text-primary" />
+              </div>
+            ) : !inventory || inventory.length === 0 ? (
+              <div className="text-center py-8 text-muted-foreground">
+                Belum ada data inventori
+              </div>
+            ) : (
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Nama Barang</TableHead>
+                    <TableHead>Kategori</TableHead>
+                    <TableHead>Ukuran</TableHead>
+                    <TableHead className="text-right">Stok Akhir</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {inventory.map((item) => {
+                    const isLowStock = Number(item.finalStock) <= Number(item.minimumStock);
+                    return (
+                      <TableRow
+                        key={Number(item.id)}
+                        className={isLowStock ? 'bg-warning-low-stock' : ''}
+                      >
+                        <TableCell className="font-medium">{item.itemName}</TableCell>
+                        <TableCell>{item.category}</TableCell>
+                        <TableCell>{item.size}</TableCell>
+                        <TableCell className="text-right">{Number(item.finalStock)}</TableCell>
+                      </TableRow>
+                    );
+                  })}
+                </TableBody>
+              </Table>
+            )}
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Low Stock Warning Dialog */}
+      <LowStockWarningDialog
+        open={showLowStockDialog}
+        onOpenChange={setShowLowStockDialog}
+        lowStockItems={lowStockItems}
+      />
     </div>
   );
 }

@@ -56,6 +56,7 @@ export default function EditInventoryItemModal({ open, onOpenChange, item, inven
   const [category, setCategory] = useState('');
   const [size, setSize] = useState('');
   const [unit, setUnit] = useState('');
+  const [minimumStock, setMinimumStock] = useState('');
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
   const updateInventoryMutation = useUpdateInventoryItem();
@@ -67,6 +68,7 @@ export default function EditInventoryItemModal({ open, onOpenChange, item, inven
       setCategory(item.category);
       setSize(item.size);
       setUnit(item.unit);
+      setMinimumStock(Number(item.minimumStock).toString());
     }
   }, [item]);
 
@@ -119,7 +121,13 @@ export default function EditInventoryItemModal({ open, onOpenChange, item, inven
         return;
       }
 
-      // Call backend - preserve stock fields from original item
+      const minimumStockValue = parseInt(minimumStock) || 0;
+      if (isNaN(minimumStockValue) || minimumStockValue < 0) {
+        setErrorMessage('Minimum Stock must be a valid non-negative number');
+        return;
+      }
+
+      // Call backend - preserve stock fields from original item, update minimumStock
       await updateInventoryMutation.mutateAsync({
         id: item.id,
         itemName: itemName.trim(),
@@ -129,6 +137,7 @@ export default function EditInventoryItemModal({ open, onOpenChange, item, inven
         initialStock: item.initialStock,
         reject: item.reject,
         finalStock: item.finalStock,
+        minimumStock: BigInt(minimumStockValue),
       });
 
       // Success - close modal
@@ -222,57 +231,69 @@ export default function EditInventoryItemModal({ open, onOpenChange, item, inven
               </Select>
             </div>
 
+            {/* Minimum Stock */}
+            <div className="space-y-2">
+              <Label htmlFor="edit-minimum-stock">Minimum Stock</Label>
+              <Input
+                id="edit-minimum-stock"
+                type="number"
+                min="0"
+                step="1"
+                placeholder="Enter minimum stock threshold"
+                value={minimumStock}
+                onChange={(e) => setMinimumStock(e.target.value)}
+                required
+              />
+              <p className="text-xs text-muted-foreground">Alert will show when stock reaches or falls below this level</p>
+            </div>
+
             {/* Display current stock values (read-only) */}
             {item && (
               <div className="space-y-3 p-4 bg-muted/50 rounded-lg border border-border">
-                <p className="text-sm font-medium text-muted-foreground">Current Stock Values (preserved)</p>
+                <p className="text-sm font-medium text-muted-foreground">Current Stock Values (Read-only)</p>
                 <div className="grid grid-cols-3 gap-4 text-sm">
                   <div>
-                    <span className="text-muted-foreground">Initial Stock:</span>
-                    <span className="ml-2 font-medium">{item.initialStock.toString()}</span>
+                    <p className="text-muted-foreground">Initial Stock</p>
+                    <p className="font-semibold">{Number(item.initialStock)}</p>
                   </div>
                   <div>
-                    <span className="text-muted-foreground">Reject:</span>
-                    <span className="ml-2 font-medium">{item.reject.toString()}</span>
+                    <p className="text-muted-foreground">Reject</p>
+                    <p className="font-semibold">{Number(item.reject)}</p>
                   </div>
                   <div>
-                    <span className="text-muted-foreground">Final Stock:</span>
-                    <span className="ml-2 font-medium">{item.finalStock.toString()}</span>
+                    <p className="text-muted-foreground">Final Stock</p>
+                    <p className="font-semibold">{Number(item.finalStock)}</p>
                   </div>
                 </div>
+                <p className="text-xs text-muted-foreground">Use "Tambah" or "Kurangi" buttons to adjust stock</p>
               </div>
             )}
 
             {/* Error Message */}
             {errorMessage && (
-              <div className="bg-destructive/10 border border-destructive/20 text-destructive px-4 py-3 rounded-lg text-sm">
+              <div className="bg-destructive/10 text-destructive text-sm p-3 rounded-md border border-destructive/20">
                 {errorMessage}
               </div>
             )}
           </form>
         </ScrollArea>
 
-        <DialogFooter className="px-6 pb-6 pt-4">
-          <Button
-            type="button"
-            variant="outline"
-            onClick={handleClose}
-            disabled={updateInventoryMutation.isPending}
-          >
+        <DialogFooter className="px-6 pb-6 pt-4 border-t">
+          <Button type="button" variant="outline" onClick={handleClose} disabled={updateInventoryMutation.isPending}>
             Cancel
           </Button>
-          <Button
-            type="submit"
+          <Button 
+            type="submit" 
             form="edit-inventory-form"
             disabled={updateInventoryMutation.isPending || isDuplicate}
           >
             {updateInventoryMutation.isPending ? (
               <>
                 <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                Saving...
+                Updating...
               </>
             ) : (
-              'Save Changes'
+              'Update Item'
             )}
           </Button>
         </DialogFooter>

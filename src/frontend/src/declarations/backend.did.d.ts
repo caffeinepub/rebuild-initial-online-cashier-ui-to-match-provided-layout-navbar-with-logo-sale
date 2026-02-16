@@ -10,6 +10,13 @@ import type { ActorMethod } from '@icp-sdk/core/agent';
 import type { IDL } from '@icp-sdk/core/candid';
 import type { Principal } from '@icp-sdk/core/principal';
 
+export interface CashTransaction {
+  'id' : bigint,
+  'transactionType' : TransactionType,
+  'description' : string,
+  'timestamp' : Time,
+  'amount' : bigint,
+}
 export interface DashboardSummary {
   'paymentMethodTotals' : PaymentMethodTotals,
   'todayRevenue' : bigint,
@@ -19,12 +26,20 @@ export type ExternalBlob = Uint8Array;
 export interface InventoryItem {
   'id' : bigint,
   'reject' : bigint,
+  'minimumStock' : bigint,
   'initialStock' : bigint,
   'size' : string,
   'unit' : string,
   'itemName' : string,
   'category' : string,
   'finalStock' : bigint,
+}
+export interface InventoryReportEntry {
+  'description' : string,
+  'timestamp' : Time,
+  'itemName' : string,
+  'itemSize' : string,
+  'quantity' : bigint,
 }
 export type PaymentMethod = { 'trf' : null } |
   { 'tunai' : null } |
@@ -40,6 +55,7 @@ export interface Product {
   'id' : bigint,
   'name' : string,
   'size' : string,
+  'category' : string,
   'salePrice' : bigint,
   'image' : ExternalBlob,
 }
@@ -60,6 +76,8 @@ export interface SaleRecord {
   'totalQuantity' : bigint,
 }
 export type Time = bigint;
+export type TransactionType = { 'expense' : null } |
+  { 'income' : null };
 export interface UserProfile { 'name' : string }
 export type UserRole = { 'admin' : null } |
   { 'user' : null } |
@@ -92,26 +110,57 @@ export interface _SERVICE {
   >,
   '_caffeineStorageUpdateGatewayPrincipals' : ActorMethod<[], undefined>,
   '_initializeAccessControlWithSecret' : ActorMethod<[string], undefined>,
+  'addCashTransaction' : ActorMethod<[bigint, TransactionType, string], bigint>,
   'addInventoryItem' : ActorMethod<
-    [string, string, string, string, bigint, bigint, bigint],
+    [string, string, string, string, bigint, bigint, bigint, bigint],
     [] | [bigint]
   >,
-  'addProduct' : ActorMethod<[string, string, bigint, ExternalBlob], bigint>,
-  'adjustInventoryStock' : ActorMethod<[bigint, bigint, boolean], boolean>,
+  'addProduct' : ActorMethod<
+    [string, string, string, bigint, ExternalBlob],
+    bigint
+  >,
+  'adjustInventoryStock' : ActorMethod<
+    [bigint, bigint, boolean, string],
+    boolean
+  >,
   'assignCallerUserRole' : ActorMethod<[Principal, UserRole], undefined>,
+  'deleteCashTransaction' : ActorMethod<[bigint], boolean>,
   'deleteSale' : ActorMethod<[bigint], boolean>,
   'fetchDashboardSummary' : ActorMethod<[], DashboardSummary>,
+  'getAllCashTransactions' : ActorMethod<[], Array<CashTransaction>>,
   'getCallerUserProfile' : ActorMethod<[], [] | [UserProfile]>,
   'getCallerUserRole' : ActorMethod<[], UserRole>,
+  'getCashBalance' : ActorMethod<[], bigint>,
+  'getCashTransactionsByDate' : ActorMethod<
+    [Time, Time],
+    Array<CashTransaction>
+  >,
+  'getDailyBalances' : ActorMethod<[Time, Time], Array<[Time, bigint]>>,
+  'getInventoryReports' : ActorMethod<
+    [[] | [string], [] | [bigint]],
+    Array<InventoryReportEntry>
+  >,
+  'getInventoryUsageStats' : ActorMethod<
+    [[] | [string], [] | [string], [] | [Time], [] | [Time]],
+    bigint
+  >,
   'getUserProfile' : ActorMethod<[Principal], [] | [UserProfile]>,
   'isCallerAdmin' : ActorMethod<[], boolean>,
+  'isInventoryLow' : ActorMethod<[], boolean>,
   'listInventoryItems' : ActorMethod<[], Array<InventoryItem>>,
+  'listOldProducts' : ActorMethod<[], Array<[bigint, Product]>>,
   'listProducts' : ActorMethod<[], Array<Product>>,
+  'listProductsDescending' : ActorMethod<[], Array<[bigint, Product]>>,
+  'listSalesDescending' : ActorMethod<[], Array<[bigint, SaleRecord]>>,
   'querySales' : ActorMethod<[Time, Time], Array<SaleRecord>>,
   'recordSale' : ActorMethod<[Array<SaleItem>, PaymentMethod, bigint], bigint>,
   'saveCallerUserProfile' : ActorMethod<[UserProfile], undefined>,
+  'updateCashTransaction' : ActorMethod<
+    [bigint, bigint, TransactionType, string],
+    boolean
+  >,
   'updateInventoryItem' : ActorMethod<
-    [bigint, string, string, string, string, bigint, bigint, bigint],
+    [bigint, string, string, string, string, bigint, bigint, bigint, bigint],
     boolean
   >,
   'updateSale' : ActorMethod<
