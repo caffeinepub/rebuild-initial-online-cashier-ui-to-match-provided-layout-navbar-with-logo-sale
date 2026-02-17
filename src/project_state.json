@@ -2,21 +2,25 @@
   "schemaVersion": "1.0.0",
   "projectStateVersion": 3,
   "summary": "New project",
-  "architectural_notes": [],
-  "known_issues": [],
-  "isFixRequest": false,
+  "architectural_notes": [
+    "Sumber data nama produk berasal dari daftar yang dikirim user melalui chat (bukan input form di aplikasi)."
+  ],
+  "known_issues": [
+    "Dropdown saat ini hanya menampilkan 3 nama produk dan scroll up/down tidak aktif untuk menampilkan item selanjutnya."
+  ],
+  "isFixRequest": true,
   "existing_features": [
     {
-      "id": "feature-update-the-product-form-modal-so-the-product-name-dropdown-options-are-populated-from-backend-product-data-actor-listproducts-via-the-existing-react-query-products-query-instead-of-using-the-hardcoded-product-names-constant",
-      "title": "Update the Product Form modal so the Product Name dropdown options are populated from backend product data (actor.listProducts via the existing React Query products query) instead of using the hardcoded PRODUCT_NAMES constant.",
+      "id": "feature-update-the-static-product-name-options-to-exactly-match-the-13-product-names-provided-in-chat-and-expose-them-from-the-existing-frontend-constants-module",
+      "title": "Update the static product name options to exactly match the 13 product names provided in chat, and expose them from the existing frontend constants module.",
       "reqIds": [
         "REQ-1"
       ],
       "version": 1
     },
     {
-      "id": "feature-make-the-product-name-dropdown-a-long-dropdown-with-default-internal-scrolling-when-there-are-many-options-by-constraining-the-dropdown-content-height-and-enabling-overflow-scrolling-on-the-dropdown-list",
-      "title": "Make the Product Name dropdown a long dropdown with default internal scrolling when there are many options by constraining the dropdown content height and enabling overflow scrolling on the dropdown list.",
+      "id": "feature-in-the-add-new-product-modal-make-the-product-name-dropdown-use-the-provided-chat-product-list-and-ensure-the-dropdown-shows-approximately-5-items-at-a-time-with-vertical-scrolling-enabled-for-the-remaining-items-not-limited-to-3-visible-items",
+      "title": "In the “Add New Product” modal, make the Product Name dropdown use the provided chat product list, and ensure the dropdown shows approximately 5 items at a time with vertical scrolling enabled for the remaining items (not limited to ~3 visible items).",
       "reqIds": [
         "REQ-2"
       ],
@@ -26,7 +30,7 @@
   "new_feature_requests": [
     {
       "id": "AR-1",
-      "summary": "Add a long product-name dropdown in the Product Form populated from backend data, using default scroll behavior when the list is long",
+      "summary": "Produk dropdown menampilkan 5 item terlihat dan sisanya dapat di-scroll (up/down) menggunakan daftar nama produk yang diberikan via chat",
       "reqIds": [],
       "status": "pending"
     }

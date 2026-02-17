@@ -1,7 +1,7 @@
 {
   "kind": "coverage_report",
   "version": "1.0",
-  "generatedAt": "2026-02-17T00:09:06.837Z",
+  "generatedAt": "2026-02-17T01:04:58.562Z",
   "sources": {
     "buildRequest": true,
     "implementationPlan": true
@@ -12,18 +12,18 @@
     "items": [
       {
         "id": "REQ-1",
-        "summary": "Update the Product Form modal so the Product Name dropdown options are populated from backend product data (actor.listProducts via the existing React Query products query) instead of using the hardcoded PRODUCT_NAMES constant.",
+        "summary": "Update the static product name options to exactly match the 13 product names provided in chat, and expose them from the existing frontend constants module.",
         "status": "implemented",
         "plannedFiles": [
-          "frontend/src/components/ProductFormModal.tsx"
+          "frontend/src/constants/productOptions.ts"
         ],
         "matchedFiles": [
-          "frontend/src/components/ProductFormModal.tsx"
+          "frontend/src/constants/productOptions.ts"
         ]
       },
       {
         "id": "REQ-2",
-        "summary": "Make the Product Name dropdown a long dropdown with default internal scrolling when there are many options by constraining the dropdown content height and enabling overflow scrolling on the dropdown list.",
+        "summary": "In the “Add New Product” modal, make the Product Name dropdown use the provided chat product list, and ensure the dropdown shows approximately 5 items at a time with vertical scrolling enabled for the remaining items (not limited to ~3 visible items).",
         "status": "implemented",
         "plannedFiles": [
           "frontend/src/components/ProductFormModal.tsx"
@@ -40,6 +40,7 @@
     "frontend-file-summaries.txt",
     "frontend-implementation-plan.json",
     "frontend/src/components/ProductFormModal.tsx",
+    "frontend/src/constants/productOptions.ts",
     "project_state.json",
     "scratch/component-selection.json",
     "spec.md",

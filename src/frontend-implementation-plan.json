@@ -1,36 +1,36 @@
 {
   "kind": "implementation_plan",
   "version": "1.0",
-  "title": "Product Catalog — Backend-driven, scrollable Product Name dropdown",
+  "title": "Fix Product Name dropdown options and scrolling in Add New Product modal",
   "requirements": [
     {
       "id": "REQ-1",
-      "summary": "Populate Product Name dropdown options in ProductFormModal from the existing React Query products list (actor.listProducts) and handle loading/error states",
+      "summary": "Replace legacy static product name options with the exact 13 provided names and export them from the existing constants module.",
       "acceptanceCriteria": [
-        "In ProductFormModal, the Product Name Select renders options derived from the backend products list (e.g., product.name).",
-        "The hardcoded PRODUCT_NAMES constant is no longer used for the Product Name dropdown options.",
-        "The dropdown handles backend loading and error states without crashing (e.g., disables the select and/or shows a simple message/state while loading or on error)."
+        "`frontend/src/constants/productOptions.ts` exports a `PRODUCT_NAMES` list containing exactly these 13 strings (spelling/casing must match chat exactly): Es Teh Ori Kecil; Es Teh Ori Besar; Kopi Aren Ori Kecil; Kopi Aren Ori Besar; Creamy Latte Kecil; Creamy Latte Besar; Matcha Latte Kecil; Choco Melt Kecil; Lemon Tea Kecil; Lemon Tea Besar; Lemon Fresh Kecil; Lemon Fresh Besar; Es Batu Cup Besar",
+        "No extra legacy product names remain in `PRODUCT_NAMES` (e.g., remove items not present in the 13-name list)."
       ],
       "file_operations": [
         {
-          "path": "frontend/src/components/ProductFormModal.tsx",
+          "path": "frontend/src/constants/productOptions.ts",
           "operation": "modify",
-          "description": "Replace the hardcoded PRODUCT_NAMES-based options with options derived from the existing React Query products query (useProducts / actor.listProducts), mapping to product.name (optionally de-duped/sorted) and adding safe loading/error UI states (e.g., disabled SelectTrigger while loading, simple in-dropdown message on error). Use the shadcn-ui Select/SelectContent composition (read-only ui components via props/className). Verify the component's usage instructions before implementing."
+          "description": "Update `PRODUCT_NAMES` to contain exactly the 13 product names from the BuildRequest (matching spelling/casing exactly) and remove any legacy entries; keep exporting `PRODUCT_NAMES` from this module for reuse across the app."
         }
       ]
     },
     {
       "id": "REQ-2",
-      "summary": "Constrain Product Name dropdown list height and enable internal vertical scrolling for many options",
+      "summary": "Make the Add New Product modal Product Name dropdown use `PRODUCT_NAMES` and ensure the open dropdown shows ~5 items with internal vertical scrolling for the rest.",
       "acceptanceCriteria": [
-        "When the Product Name options exceed the visible area, the dropdown list becomes vertically scrollable using native/default scrolling behavior.",
-        "The dropdown list height is constrained (e.g., via a max-height class on the SelectContent) so it does not expand beyond the viewport."
+        "`frontend/src/components/ProductFormModal.tsx` imports and uses `PRODUCT_NAMES` to populate the Product Name `<Select>` options (the dropdown is not dependent on `useProducts()` returning previously-created products).",
+        "When the Product Name dropdown is opened, about 5 options are visible without scrolling, and the remaining options are accessible via mouse wheel/trackpad scroll inside the dropdown.",
+        "The dropdown is not visually truncated to ~3 visible items on common viewport sizes; it has a fixed max height (around 250px) and `overflow-y-auto` applied to the actual scroll container used by the select dropdown."
       ],
       "file_operations": [
         {
           "path": "frontend/src/components/ProductFormModal.tsx",
           "operation": "modify",
-          "description": "Make the Product Name dropdown list scroll by constraining SelectContent height (e.g., max-height) and enabling overflow-y auto on the dropdown list container using className props (do not modify files under frontend/src/components/ui). Use the shadcn-ui SelectContent styling hook points. Verify the component's usage instructions before implementing."
+          "description": "Switch Product Name `<Select>` options to come from `PRODUCT_NAMES` imported from `frontend/src/constants/productOptions.ts` (stop deriving options from `useProducts()`); adjust the Select dropdown styling by applying a fixed max-height (~250px) and `overflow-y-auto` to the actual internal scroll container used by the shadcn Select dropdown (via className composition/overrides on `SelectContent`, without modifying anything under `frontend/src/components/ui`). Verify the component's usage instructions before implementing."
         }
       ]
     }

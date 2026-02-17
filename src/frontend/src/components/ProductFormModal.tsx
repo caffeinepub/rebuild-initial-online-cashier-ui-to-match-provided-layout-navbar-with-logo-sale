@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react';
+import { useState } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -6,9 +6,9 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Loader2, Upload, AlertCircle } from 'lucide-react';
-import { useAddProduct, useProducts } from '../hooks/useProducts';
+import { useAddProduct } from '../hooks/useProducts';
 import { ExternalBlob } from '../backend';
-import { PRODUCT_CATEGORIES, PRODUCT_SIZES } from '../constants/productOptions';
+import { PRODUCT_CATEGORIES, PRODUCT_SIZES, PRODUCT_NAMES } from '../constants/productOptions';
 import { normalizeErrorMessage } from '../utils/errorMessage';
 import { useInternetIdentity } from '../hooks/useInternetIdentity';
 
@@ -28,14 +28,6 @@ export default function ProductFormModal({ open, onOpenChange }: ProductFormModa
 
   const { mutate: addProduct, isPending, error } = useAddProduct();
   const { identity } = useInternetIdentity();
-  const { data: products, isLoading: productsLoading, error: productsError } = useProducts();
-
-  // Extract unique product names from backend products, sorted alphabetically
-  const productNameOptions = useMemo(() => {
-    if (!products || products.length === 0) return [];
-    const uniqueNames = Array.from(new Set(products.map(p => p.name)));
-    return uniqueNames.sort((a, b) => a.localeCompare(b));
-  }, [products]);
 
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -108,45 +100,16 @@ export default function ProductFormModal({ open, onOpenChange }: ProductFormModa
           <form onSubmit={handleSubmit} className="space-y-4">
             <div className="space-y-2">
               <Label htmlFor="name">Nama Produk</Label>
-              <Select 
-                value={name} 
-                onValueChange={setName} 
-                required
-                disabled={productsLoading || !!productsError}
-              >
+              <Select value={name} onValueChange={setName} required>
                 <SelectTrigger id="name">
-                  <SelectValue 
-                    placeholder={
-                      productsLoading 
-                        ? "Memuat daftar produk..." 
-                        : productsError 
-                        ? "Gagal memuat produk" 
-                        : "Pilih nama produk"
-                    } 
-                  />
+                  <SelectValue placeholder="Pilih nama produk" />
                 </SelectTrigger>
-                <SelectContent className="max-h-[300px]">
-                  {productsLoading ? (
-                    <div className="flex items-center justify-center py-4 text-sm text-muted-foreground">
-                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                      Memuat...
-                    </div>
-                  ) : productsError ? (
-                    <div className="flex items-center justify-center py-4 text-sm text-destructive">
-                      <AlertCircle className="mr-2 h-4 w-4" />
-                      Gagal memuat daftar produk
-                    </div>
-                  ) : productNameOptions.length === 0 ? (
-                    <div className="flex items-center justify-center py-4 text-sm text-muted-foreground">
-                      Belum ada produk
-                    </div>
-                  ) : (
-                    productNameOptions.map((productName) => (
-                      <SelectItem key={productName} value={productName}>
-                        {productName}
-                      </SelectItem>
-                    ))
-                  )}
+                <SelectContent className="max-h-[250px] overflow-y-auto">
+                  {PRODUCT_NAMES.map((productName) => (
+                    <SelectItem key={productName} value={productName}>
+                      {productName}
+                    </SelectItem>
+                  ))}
                 </SelectContent>
               </Select>
             </div>

@@ -1,68 +1,57 @@
 {
   "kind": "build_request",
-  "title": "Populate Product Name dropdown from backend and make it scrollable",
+  "title": "Fix product name dropdown to show 5 visible items with scroll and use provided product list",
   "projectName": "Product Catalog",
   "priority": "normal",
   "requirements": [
     {
       "id": "REQ-1",
-      "text": "Update the Product Form modal so the Product Name dropdown options are populated from backend product data (actor.listProducts via the existing React Query products query) instead of using the hardcoded PRODUCT_NAMES constant.",
+      "text": "Update the static product name options to exactly match the 13 product names provided in chat, and expose them from the existing frontend constants module.",
       "target": "frontend",
       "source": {
         "messageIds": [
-          "msg-4",
-          "msg-6"
+          "msg-user-products-list"
         ],
         "quotes": [
-          "List Nama produk dalam form produk baru, aktifkan scroll up/down, karena nama produk cukup banyak",
-          "1. dari data backend yang ada dalam dropdown"
+          "1. Es Teh Ori Kecil 2. Es Teh Ori Besar 3. Kopi Aren Ori Kecil 4. Kopi Aren Ori Besar 5. Creamy Latte Kecil 6. Creamy Latte Besar 7. Matcha Latte Kecil 8. Choco Melt Kecil 9. Lemon Tea Kecil 10. Lemon Tea Besar 11. Lemon Fresh Kecil 12. Lemon Fresh Besar 13. Es Batu Cup Besar"
         ]
       },
       "acceptanceCriteria": [
-        "In ProductFormModal, the Product Name Select renders options derived from the backend products list (e.g., product.name).",
-        "The hardcoded PRODUCT_NAMES constant is no longer used for the Product Name dropdown options.",
-        "The dropdown handles backend loading and error states without crashing (e.g., disables the select and/or shows a simple message/state while loading or on error)."
+        "`frontend/src/constants/productOptions.ts` exports a `PRODUCT_NAMES` list containing exactly these 13 strings (spelling/casing must match chat exactly): Es Teh Ori Kecil; Es Teh Ori Besar; Kopi Aren Ori Kecil; Kopi Aren Ori Besar; Creamy Latte Kecil; Creamy Latte Besar; Matcha Latte Kecil; Choco Melt Kecil; Lemon Tea Kecil; Lemon Tea Besar; Lemon Fresh Kecil; Lemon Fresh Besar; Es Batu Cup Besar",
+        "No extra legacy product names remain in `PRODUCT_NAMES` (e.g., remove items not present in the 13-name list)."
       ]
     },
     {
       "id": "REQ-2",
-      "text": "Make the Product Name dropdown a long dropdown with default internal scrolling when there are many options by constraining the dropdown content height and enabling overflow scrolling on the dropdown list.",
+      "text": "In the “Add New Product” modal, make the Product Name dropdown use the provided chat product list, and ensure the dropdown shows approximately 5 items at a time with vertical scrolling enabled for the remaining items (not limited to ~3 visible items).",
       "target": "frontend",
       "source": {
         "messageIds": [
-          "msg-6"
+          "msg-user-scroll-request",
+          "msg-user-products-list"
         ],
         "quotes": [
-          "2. dropdown panjang 3. scroll default"
+          "Saya mau, ukuran drop down cukup untuk 5 nama, nama produk yang lain dimunculkan dengan scroll up/dwon.",
+          "1. Es Teh Ori Kecil 2. Es Teh Ori Besar 3. Kopi Aren Ori Kecil 4. Kopi Aren Ori Besar 5. Creamy Latte Kecil 6. Creamy Latte Besar 7. Matcha Latte Kecil 8. Choco Melt Kecil 9. Lemon Tea Kecil 10. Lemon Tea Besar 11. Lemon Fresh Kecil 12. Lemon Fresh Besar 13. Es Batu Cup Besar"
         ]
       },
       "acceptanceCriteria": [
-        "When the Product Name options exceed the visible area, the dropdown list becomes vertically scrollable using native/default scrolling behavior.",
-        "The dropdown list height is constrained (e.g., via a max-height class on the SelectContent) so it does not expand beyond the viewport."
+        "`frontend/src/components/ProductFormModal.tsx` imports and uses `PRODUCT_NAMES` to populate the Product Name `<Select>` options (the dropdown is not dependent on `useProducts()` returning previously-created products).",
+        "When the Product Name dropdown is opened, about 5 options are visible without scrolling, and the remaining options are accessible via mouse wheel/trackpad scroll inside the dropdown.",
+        "The dropdown is not visually truncated to ~3 visible items on common viewport sizes; it has a fixed max height (around 250px) and `overflow-y-auto` applied to the actual scroll container used by the select dropdown."
       ]
     }
   ],
   "constraints": [
-    "Do not modify any files under frontend/src/components/ui (Shadcn components are read-only and must be composed via props/className usage).",
-    "Do not change backend canister architecture (single-actor) or add external databases/services."
+    "Do not modify any files under `frontend/src/components/ui` (shadcn UI components); implement fixes by composing/overriding via props/classes in app components instead.",
+    "Keep the backend as a single Motoko actor; no new backend canisters/services."
   ],
   "nonGoals": [
-    "Do not change the Category and Size dropdowns behavior or option sets.",
-    "Do not implement auto-fill of Category/Size based on the selected Product Name.",
-    "Do not change backend schemas or add new backend endpoints unless strictly required for populating the dropdown from existing product data."
+    "Do not add a new UI/admin screen to manage product name lists dynamically.",
+    "Do not implement pagination, search, or async loading for the product name dropdown unless required to make scrolling work."
   ],
   "imageRequirements": {
     "required": [],
     "edits": []
-  },
-  "userProfileUpdate": {
-    "goalsToAdd": [],
-    "goalsToRemove": [],
-    "preferencesToAdd": [],
-    "preferencesToRemove": [],
-    "miscToAdd": [],
-    "miscToRemove": [],
-    "fieldsToSet": {},
-    "fieldsToDelete": []
   }
 }

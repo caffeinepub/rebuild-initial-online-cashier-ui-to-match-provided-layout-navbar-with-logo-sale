@@ -2,10 +2,10 @@
   "kind": "feature_evidence_report",
   "features": [
     {
-      "featureId": "feature-update-the-product-form-modal-so-the-product-name-dropdown-options-are-populated-from-backend-product-data-actor-listproducts-via-the-existing-react-query-products-query-instead-of-using-the-hardcoded-product-names-constant",
-      "featureTitle": "Update the Product Form modal so the Product Name dropdown options are populated from backend product data (actor.listProducts via the existing React Query products query) instead of using the hardcoded PRODUCT_NAMES constant.",
+      "featureId": "feature-update-the-static-product-name-options-to-exactly-match-the-13-product-names-provided-in-chat-and-expose-them-from-the-existing-frontend-constants-module",
+      "featureTitle": "Update the static product name options to exactly match the 13 product names provided in chat, and expose them from the existing frontend constants module.",
       "files": [
-        "frontend/src/components/ProductFormModal.tsx"
+        "frontend/src/constants/productOptions.ts"
       ],
       "components": [
         "core-infrastructure@1.0.2",
@@ -22,8 +22,8 @@
       "confidence": "high"
     },
     {
-      "featureId": "feature-make-the-product-name-dropdown-a-long-dropdown-with-default-internal-scrolling-when-there-are-many-options-by-constraining-the-dropdown-content-height-and-enabling-overflow-scrolling-on-the-dropdown-list",
-      "featureTitle": "Make the Product Name dropdown a long dropdown with default internal scrolling when there are many options by constraining the dropdown content height and enabling overflow scrolling on the dropdown list.",
+      "featureId": "feature-in-the-add-new-product-modal-make-the-product-name-dropdown-use-the-provided-chat-product-list-and-ensure-the-dropdown-shows-approximately-5-items-at-a-time-with-vertical-scrolling-enabled-for-the-remaining-items-not-limited-to-3-visible-items",
+      "featureTitle": "In the “Add New Product” modal, make the Product Name dropdown use the provided chat product list, and ensure the dropdown shows approximately 5 items at a time with vertical scrolling enabled for the remaining items (not limited to ~3 visible items).",
       "files": [
         "frontend/src/components/ProductFormModal.tsx"
       ],
