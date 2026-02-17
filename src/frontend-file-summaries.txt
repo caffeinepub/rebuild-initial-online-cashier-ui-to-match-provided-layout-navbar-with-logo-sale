@@ -1,8 +1,8 @@
 {
   "frontend/src/App.tsx": "Main application shell with QueryClientProvider, view state management for all pages, and Indonesian localized footer with Caffeine attribution.",
   "frontend/src/components/Navbar.tsx": "Top navigation bar with logo, title, menu items, and Laporan dropdown submenu using green/teal accent colors for active states.",
-  "frontend/src/components/Dashboard.tsx": "Dashboard component with anonymous actor usage, removed sign-in required state, displays summary cards, payment method recap, and inventory list with low-stock warning dialog.",
-  "frontend/src/index.css": "Global styles with OKLCH color system customized with green/teal primary accent (hue 155) instead of blue/purple, maintaining turmeric-yellow warning colors for low-stock items.",
+  "frontend/src/components/Dashboard.tsx": "Dashboard component displaying today's sales summary cards, payment method breakdown, persistent low-stock banner above sales info, and complete inventory table with all stock fields matching InventoryPage layout and low-stock row styling.",
+  "frontend/src/index.css": "Global styles with OKLCH color system customized with green/teal primary accent (hue 155) and updated lighter/brighter turmeric-yellow warning colors for low-stock items (lightness increased from 88% to 95% in light mode and 45% to 58% in dark mode with enhanced chroma).",
   "frontend/src/components/ProductsPage.tsx": "Products page with anonymous actor usage, removed sign-in required state, displays product grid with images and prices.",
   "frontend/src/components/ProductFormModal.tsx": "Product form modal with dropdown selects for product name (populated from static PRODUCT_NAMES constant with 250px fixed height and vertical scrolling enabled), category, and size, numeric inputs for HPP and sale price, image upload with preview, and authentication-aware error handling.",
   "frontend/src/hooks/useProducts.ts": "React Query hooks for product operations (list and add) using the anonymous public actor instead of authenticated actor.",
@@ -36,5 +36,6 @@
   "frontend/src/hooks/useInvalidateActorQueries.ts": "Hook that provides a function to invalidate all actor-related queries for proper retry behavior when actor re-initialization is needed.",
   "frontend/src/components/SignInRequiredState.tsx": "Reusable component that displays a sign-in prompt with Internet Identity login button when authentication is required to access a feature.",
   "frontend/src/components/LowStockWarningDialog.tsx": "Pop-up dialog component that displays a warning list of inventory items where current stock (finalStock) has reached or fallen below the minimum stock threshold, showing item details in a scrollable table.",
-  "frontend/tailwind.config.js": "Tailwind configuration with theme mappings for the green/teal accent color system and consistent design tokens."
+  "frontend/tailwind.config.js": "Tailwind configuration with theme mappings for the green/teal accent color system and consistent design tokens.",
+  "frontend/src/components/LowStockBanner.tsx": "Non-dismissible banner component that displays a compact table of low-stock inventory items with light orange background, showing all stock fields and applying the same low-stock row styling as InventoryPage."
 }

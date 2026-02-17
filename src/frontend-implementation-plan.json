@@ -1,122 +1,21 @@
 {
   "kind": "implementation_plan",
   "version": "1.0",
-  "title": "Anonymous-only shared dataset UI (remove Internet Identity gating) + cohesive non-blue theme",
+  "title": "Lighten and brighten low-stock reminder background",
   "requirements": [
     {
-      "id": "REQ-2",
-      "summary": "Migrate all frontend data access to use an anonymous actor (usePublicActor) and remove reliance on authenticated actor flows.",
+      "id": "REQ-1",
+      "summary": "Adjust the low-stock theme tokens so the reminder banner and low-stock row highlights use a lighter/brighter background while keeping readable contrast in light and dark mode.",
       "acceptanceCriteria": [
-        "`useDashboardSummary`, `useSalesReport`, `useInventory`, `useProducts`, `useRecordSale`, and `useSalesMutations` no longer import or call `useActor()` and instead use an anonymous actor source.",
-        "App loads and can list/add products, list/add/update inventory, record sales, and view reports while not logged in.",
-        "No frontend code path attempts to initialize access control via URL secret (e.g., `caffeineAdminToken`) as a prerequisite for normal operation."
-      ],
-      "file_operations": [
-        {
-          "path": "frontend/src/hooks/useDashboardSummary.ts",
-          "operation": "modify",
-          "description": "Replace authenticated actor dependency (`useActor`) with anonymous actor (`usePublicActor`) so dashboard summary queries work without Internet Identity. Verify the component's usage instructions before implementing."
-        },
-        {
-          "path": "frontend/src/hooks/useSalesReport.ts",
-          "operation": "modify",
-          "description": "Replace authenticated actor dependency (`useActor`) with anonymous actor (`usePublicActor`) so sales queries work without Internet Identity. Verify the component's usage instructions before implementing."
-        },
-        {
-          "path": "frontend/src/hooks/useProducts.ts",
-          "operation": "modify",
-          "description": "Update product list + add-product mutation to use the anonymous actor source (`usePublicActor`) instead of `useActor`, ensuring product browsing/creation works while anonymous. Verify the component's usage instructions before implementing."
-        },
-        {
-          "path": "frontend/src/hooks/useInventory.ts",
-          "operation": "modify",
-          "description": "Update inventory list + inventory mutations (add/update/adjust stock) to use the anonymous actor source (`usePublicActor`) instead of `useActor`, ensuring full inventory management works while anonymous. Verify the component's usage instructions before implementing."
-        },
-        {
-          "path": "frontend/src/hooks/useRecordSale.ts",
-          "operation": "modify",
-          "description": "Update record-sale mutation to use the anonymous actor source (`usePublicActor`) instead of `useActor`, ensuring sales can be recorded without login and query invalidation still refreshes dashboard/inventory. Verify the component's usage instructions before implementing."
-        },
-        {
-          "path": "frontend/src/hooks/useSalesMutations.ts",
-          "operation": "modify",
-          "description": "Update update/delete sale mutations to use the anonymous actor source (`usePublicActor`) instead of `useActor`, ensuring sales edits/deletes work without login and relevant queries refresh. Verify the component's usage instructions before implementing."
-        },
-        {
-          "path": "frontend/src/components/SalesReportPage.tsx",
-          "operation": "modify",
-          "description": "Adjust retry invalidation to refresh the anonymous-actor backed queries (stop invalidating the authenticated actor query key) so retry works when not logged in. Verify the component's usage instructions before implementing."
-        }
-      ]
-    },
-    {
-      "id": "REQ-3",
-      "summary": "Remove Internet Identity sign-in gating UI by eliminating SignInRequiredState usage and auth-based conditional rendering across pages.",
-      "acceptanceCriteria": [
-        "Dashboard, Products, Inventory, Transactions, and Reports do not render any \"Sign In Required\" UI when the user is anonymous.",
-        "If a backend error occurs, the UI shows the standard error UI (e.g., `QueryErrorState`) and retry still works without requiring login."
-      ],
-      "file_operations": [
-        {
-          "path": "frontend/src/components/Dashboard.tsx",
-          "operation": "modify",
-          "description": "Remove `SignInRequiredState` rendering and any `useInternetIdentity`-based auth gating; on errors always show `QueryErrorState` + retry. Verify the component's usage instructions before implementing."
-        },
-        {
-          "path": "frontend/src/components/ProductsPage.tsx",
-          "operation": "modify",
-          "description": "Remove `SignInRequiredState` rendering and any `useInternetIdentity`-based auth gating; on errors always show `QueryErrorState` + retry. Verify the component's usage instructions before implementing."
-        },
-        {
-          "path": "frontend/src/components/InventoryPage.tsx",
-          "operation": "modify",
-          "description": "Remove `SignInRequiredState` rendering and any `useInternetIdentity`-based auth gating; on errors always show `QueryErrorState` + retry. Verify the component's usage instructions before implementing."
-        },
-        {
-          "path": "frontend/src/components/TransactionPage.tsx",
-          "operation": "modify",
-          "description": "Remove `SignInRequiredState` rendering and any `useInternetIdentity`-based auth gating on product-loading errors; fall back to standard error UI. Verify the component's usage instructions before implementing."
-        },
-        {
-          "path": "frontend/src/components/InventoryReportPage.tsx",
-          "operation": "modify",
-          "description": "Remove special-casing that treats authorization failures differently; show the standard error UI (with retry) for any backend failure now that reports should be anonymous-accessible. Verify the component's usage instructions before implementing."
-        },
-        {
-          "path": "frontend/src/utils/errorMessage.ts",
-          "operation": "modify",
-          "description": "Adjust error normalization so authorization-related text does not map to an \"Authentication Required\" UX flow; keep it as a generic service/permission error message suitable for an always-anonymous app. Verify the component's usage instructions before implementing."
-        }
-      ]
-    },
-    {
-      "id": "REQ-4",
-      "summary": "Implement a cohesive non-blue/purple visual theme (colors/typography/spacing) consistent across all views and dialogs.",
-      "acceptanceCriteria": [
-        "A consistent non-blue/purple primary accent color is used across buttons/links/highlights.",
-        "Typography and spacing feel consistent across Dashboard, Products, Inventory, Transactions, and Reports.",
-        "No layout regressions: navigation and all existing screens remain usable on laptop and mobile web."
+        "On the Dashboard, the low-stock reminder banner background appears visibly lighter/brighter than before.",
+        "Low-stock highlighted rows (e.g., the Dashboard inventory table and the low-stock banner table rows) use the updated lighter/brighter background consistently.",
+        "Text and icons on top of the updated background remain readable with sufficient contrast in both light mode and dark mode."
       ],
       "file_operations": [
         {
           "path": "frontend/src/index.css",
           "operation": "modify",
-          "description": "Update global CSS variables/tokens to adopt a cohesive lightweight internal-tool theme with a non-blue/purple primary accent (e.g., green/earth-tone) and consistent foreground/background/muted/border styling across light/dark modes. Verify the component's usage instructions before implementing."
-        },
-        {
-          "path": "frontend/tailwind.config.js",
-          "operation": "modify",
-          "description": "Align Tailwind theme mappings/extended tokens to the updated global CSS variables so all shadcn/ui compositions inherit the new non-blue/purple accent consistently (without editing `frontend/src/components/ui`). Verify the component's usage instructions before implementing."
-        },
-        {
-          "path": "frontend/src/components/Navbar.tsx",
-          "operation": "modify",
-          "description": "Ensure navigation active/hover states rely on theme tokens (e.g., `text-primary`, `bg-accent`) and remain readable/usable on mobile and desktop with the updated palette. Verify the component's usage instructions before implementing."
-        },
-        {
-          "path": "frontend/src/App.tsx",
-          "operation": "modify",
-          "description": "Confirm app shell background/containers/spacing consistently use theme tokens so all views/dialogs feel cohesive after the palette update (no new routes). Verify the component's usage instructions before implementing."
+          "description": "Update the low-stock warning theme tokens (--warning-low-stock and, if needed for borders, --warning-low-stock-foreground) for both :root and .dark so backgrounds used by LowStockBanner, Dashboard table rows, and InventoryPage low-stock rows render lighter/brighter while maintaining readable contrast. Keep changes limited to token values; do not modify any files under frontend/src/components/ui and do not introduce new non-English user-facing text."
         }
       ]
     }

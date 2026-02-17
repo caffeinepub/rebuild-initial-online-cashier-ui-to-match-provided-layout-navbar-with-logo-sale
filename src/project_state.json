@@ -1,34 +1,16 @@
 {
   "schemaVersion": "1.0.0",
   "projectStateVersion": 3,
-  "summary": "Build a web app that uses a single shared/global dataset (products, inventory, transactions, history, attendance) accessible from any device with no login/Internet Identity; all users see and edit the same data.",
-  "architectural_notes": [
-    "Data model/storage should be global/shared (single dataset), not keyed by user identity; app should not require Internet Identity or any login flow."
-  ],
+  "summary": "New project",
+  "architectural_notes": [],
   "known_issues": [],
   "isFixRequest": false,
   "existing_features": [
     {
-      "id": "feature-switch-all-frontend-data-access-to-use-an-anonymous-actor-only-no-authenticated-actor-flow-by-migrating-all-hooks-that-currently-depend-on-useactor-to-use-usepublicactor-or-a-new-non-immutable-equivalent-so-the-app-functions-fully-without-any-internet-identity-login",
-      "title": "Switch all frontend data access to use an anonymous actor only (no authenticated actor flow) by migrating all hooks that currently depend on `useActor()` to use `usePublicActor()` (or a new non-immutable equivalent), so the app functions fully without any Internet Identity login.",
+      "id": "feature-update-the-reminder-low-stock-warning-background-color-to-be-lighter-and-brighter-than-the-current-design-by-adjusting-the-low-stock-theme-tokens-used-for-the-banner-and-low-stock-table-row-highlights",
+      "title": "Update the reminder/low-stock warning background color to be lighter and brighter than the current design by adjusting the low-stock theme tokens used for the banner and low-stock table-row highlights.",
       "reqIds": [
-        "REQ-2"
-      ],
-      "version": 1
-    },
-    {
-      "id": "feature-remove-internet-identity-sign-in-gating-from-ui-pages-by-eliminating-usage-of-signinrequiredstate-and-any-sign-in-required-conditional-rendering-so-pages-show-either-the-normal-content-loading-states-or-non-auth-error-states",
-      "title": "Remove Internet Identity sign-in gating from UI pages by eliminating usage of `SignInRequiredState` and any \"sign in required\" conditional rendering, so pages show either the normal content, loading states, or non-auth error states.",
-      "reqIds": [
-        "REQ-3"
-      ],
-      "version": 1
-    },
-    {
-      "id": "feature-apply-a-single-cohesive-visual-theme-across-the-app-colors-typography-spacing-and-component-styling-appropriate-for-a-lightweight-shared-internal-tool-avoid-blue-purple-as-primary-colors-and-keep-the-theme-consistent-across-all-views-and-dialogs",
-      "title": "Apply a single cohesive visual theme across the app (colors, typography, spacing, and component styling) appropriate for a lightweight shared internal tool; avoid blue/purple as primary colors and keep the theme consistent across all views and dialogs.",
-      "reqIds": [
-        "REQ-4"
+        "REQ-1"
       ],
       "version": 1
     }
@@ -36,21 +18,12 @@
   "new_feature_requests": [
     {
       "id": "AR-1",
-      "summary": "Remove Internet Identity/login requirement and use one global shared dataset so all devices/users see and edit the same products/inventory/transactions/history/attendance data.",
+      "summary": "Make the reminder background color lighter/brighter than the current color",
       "reqIds": [],
-      "status": "pending"
-    },
-    {
-      "id": "AR-2",
-      "summary": "Update the backend authorization model so that all core data (products, inventory, sales/transactions, reports, cash transactions, and any other existing records) is readable and writable by any caller without requiring Internet Identity login or role-based permissions (i.e., no admin/user gating).",
-      "reqIds": [
-        "REQ-1"
-      ],
       "status": "pending"
     }
   ],
-  "gameProjectType": "none",
-  "projectName": "Product Catalog",
+  "projectName": "Sales Inventory Dashboard",
   "clarification_mode": "instant",
   "clarification_rounds": 0
 }
