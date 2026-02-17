@@ -2,11 +2,10 @@
   "kind": "feature_evidence_report",
   "features": [
     {
-      "featureId": "feature-update-the-shared-product-option-constants-so-the-product-form-uses-fixed-dropdown-values-for-category-and-size-category-must-be-exactly-teh-kopi-matcha-coklat-lemon-and-size-must-be-exactly-kecil-besar-jumbo",
-      "featureTitle": "Update the shared product option constants so the Product form uses fixed dropdown values for Category and Size: Category must be exactly [\"Teh\", \"Kopi\", \"Matcha\", \"Coklat\", \"Lemon\"], and Size must be exactly [\"Kecil\", \"Besar\", \"Jumbo\"].",
+      "featureId": "feature-update-the-product-form-modal-so-the-product-name-dropdown-options-are-populated-from-backend-product-data-actor-listproducts-via-the-existing-react-query-products-query-instead-of-using-the-hardcoded-product-names-constant",
+      "featureTitle": "Update the Product Form modal so the Product Name dropdown options are populated from backend product data (actor.listProducts via the existing React Query products query) instead of using the hardcoded PRODUCT_NAMES constant.",
       "files": [
-        "frontend/src/components/ProductFormModal.tsx",
-        "frontend/src/constants/productOptions.ts"
+        "frontend/src/components/ProductFormModal.tsx"
       ],
       "components": [
         "core-infrastructure@1.0.2",
@@ -23,29 +22,8 @@
       "confidence": "high"
     },
     {
-      "featureId": "feature-change-the-product-name-field-in-the-product-form-from-a-free-text-input-to-a-required-dropdown-with-these-exact-options-es-teh-ori-kecil-es-teh-ori-besar-kopi-aren-ori-kecil-kopi-aren-besar-creamilky-latte-kecil-creamilky-latte-besar-matcha-latte-choco-melt-lemon-tea-kecil-lemon-tea-besar-lemon-fresh-kecil-lemon-fresh-besar-teh-manis-hangat-kecil-teh-hangat-besar-es-batu-besar",
-      "featureTitle": "Change the Product Name field in the Product form from a free-text input to a required dropdown with these exact options: \"Es Teh Ori Kecil\", \"Es Teh Ori Besar\", \"Kopi Aren Ori Kecil\", \"Kopi Aren Besar\", \"Creamilky Latte Kecil\", \"Creamilky Latte Besar\", \"Matcha Latte\", \"Choco Melt\", \"Lemon Tea Kecil\", \"Lemon Tea Besar\", \"Lemon Fresh Kecil\", \"Lemon Fresh Besar\", \"Teh Manis Hangat Kecil\", \"Teh Hangat Besar\", \"Es Batu Besar\".",
-      "files": [
-        "frontend/src/components/ProductFormModal.tsx",
-        "frontend/src/constants/productOptions.ts"
-      ],
-      "components": [
-        "core-infrastructure@1.0.2",
-        "shadcn-ui@1.0.0",
-        "build-template-react@1.0.0",
-        "initial-app@1.0.0",
-        "github-export-icp-cli@1.0.0",
-        "blob-storage@4.0.0",
-        "authorization@4.0.0"
-      ],
-      "testIds": [
-        "REQ-2"
-      ],
-      "confidence": "high"
-    },
-    {
-      "featureId": "feature-ensure-selecting-a-product-name-does-not-auto-fill-or-modify-category-and-size-category-and-size-must-remain-manually-selectable-by-the-user",
-      "featureTitle": "Ensure selecting a Product Name does not auto-fill or modify Category and Size; Category and Size must remain manually selectable by the user.",
+      "featureId": "feature-make-the-product-name-dropdown-a-long-dropdown-with-default-internal-scrolling-when-there-are-many-options-by-constraining-the-dropdown-content-height-and-enabling-overflow-scrolling-on-the-dropdown-list",
+      "featureTitle": "Make the Product Name dropdown a long dropdown with default internal scrolling when there are many options by constraining the dropdown content height and enabling overflow scrolling on the dropdown list.",
       "files": [
         "frontend/src/components/ProductFormModal.tsx"
       ],
@@ -59,28 +37,7 @@
         "authorization@4.0.0"
       ],
       "testIds": [
-        "REQ-3"
-      ],
-      "confidence": "high"
-    },
-    {
-      "featureId": "feature-add-an-hpp-field-to-the-product-form-as-a-plain-numeric-input-numbers-only-no-automatic-rupiah-formatting-and-persist-it-as-part-of-the-product-record-in-the-backend",
-      "featureTitle": "Add an HPP field to the Product form as a plain numeric input (numbers only, no automatic Rupiah formatting) and persist it as part of the Product record in the backend.",
-      "files": [
-        "frontend/src/components/ProductFormModal.tsx",
-        "frontend/src/hooks/useProducts.ts"
-      ],
-      "components": [
-        "core-infrastructure@1.0.2",
-        "shadcn-ui@1.0.0",
-        "build-template-react@1.0.0",
-        "initial-app@1.0.0",
-        "github-export-icp-cli@1.0.0",
-        "blob-storage@4.0.0",
-        "authorization@4.0.0"
-      ],
-      "testIds": [
-        "REQ-4"
+        "REQ-2"
       ],
       "confidence": "high"
     }

@@ -1,110 +1,55 @@
 {
   "kind": "build_request",
-  "title": "Update Product Form dropdown options and add HPP numeric field",
+  "title": "Populate Product Name dropdown from backend and make it scrollable",
   "projectName": "Product Catalog",
   "priority": "normal",
   "requirements": [
     {
       "id": "REQ-1",
-      "text": "Update the shared product option constants so the Product form uses fixed dropdown values for Category and Size: Category must be exactly [\"Teh\", \"Kopi\", \"Matcha\", \"Coklat\", \"Lemon\"], and Size must be exactly [\"Kecil\", \"Besar\", \"Jumbo\"].",
+      "text": "Update the Product Form modal so the Product Name dropdown options are populated from backend product data (actor.listProducts via the existing React Query products query) instead of using the hardcoded PRODUCT_NAMES constant.",
       "target": "frontend",
       "source": {
         "messageIds": [
-          "msg-5"
+          "msg-4",
+          "msg-6"
         ],
         "quotes": [
-          "Setelah live, menu di form produk berubah. ubah Kategori menjadi :  Teh, Kopi, Matcha, Coklat, Lemon.  Ukuran :  Kecil, Besar, Jumbo."
+          "List Nama produk dalam form produk baru, aktifkan scroll up/down, karena nama produk cukup banyak",
+          "1. dari data backend yang ada dalam dropdown"
         ]
       },
       "acceptanceCriteria": [
-        "In frontend/src/constants/productOptions.ts, PRODUCT_CATEGORIES exports exactly: Teh, Kopi, Matcha, Coklat, Lemon (no additional values).",
-        "In frontend/src/constants/productOptions.ts, PRODUCT_SIZES exports exactly: Kecil, Besar, Jumbo (no additional values).",
-        "ProductFormModal category and size dropdowns display only the updated options."
+        "In ProductFormModal, the Product Name Select renders options derived from the backend products list (e.g., product.name).",
+        "The hardcoded PRODUCT_NAMES constant is no longer used for the Product Name dropdown options.",
+        "The dropdown handles backend loading and error states without crashing (e.g., disables the select and/or shows a simple message/state while loading or on error)."
       ]
     },
     {
       "id": "REQ-2",
-      "text": "Change the Product Name field in the Product form from a free-text input to a required dropdown with these exact options: \"Es Teh Ori Kecil\", \"Es Teh Ori Besar\", \"Kopi Aren Ori Kecil\", \"Kopi Aren Besar\", \"Creamilky Latte Kecil\", \"Creamilky Latte Besar\", \"Matcha Latte\", \"Choco Melt\", \"Lemon Tea Kecil\", \"Lemon Tea Besar\", \"Lemon Fresh Kecil\", \"Lemon Fresh Besar\", \"Teh Manis Hangat Kecil\", \"Teh Hangat Besar\", \"Es Batu Besar\".",
-      "target": "frontend",
-      "source": {
-        "messageIds": [
-          "msg-5"
-        ],
-        "quotes": [
-          "Tambahah, untuk Nama produk , ganti menjadi dropdown, dengan pilihan ; Es Teh Ori Kecil, Es Teh Ori Besar , Kopi Aren Ori Kecil, Kopi Aren Besar, Creamilky Latte Kecil, Creamilky Latte Besar, Matcha Latte, Choco Melt, Lemon Tea Kecil, Lemon Tea Besar, Lemon Fresh Kecil, Lemon Fresh Besar, Teh Manis Hangat Kecil, Teh Hangat Besar, Es Batu Besar"
-        ]
-      },
-      "acceptanceCriteria": [
-        "In ProductFormModal, the \"Nama Produk\" control is a Select (dropdown), not a text Input.",
-        "The dropdown contains exactly the listed product names, with no extra or missing options.",
-        "Submitting the form sends the selected product name value as the product name."
-      ]
-    },
-    {
-      "id": "REQ-3",
-      "text": "Ensure selecting a Product Name does not auto-fill or modify Category and Size; Category and Size must remain manually selectable by the user.",
+      "text": "Make the Product Name dropdown a long dropdown with default internal scrolling when there are many options by constraining the dropdown content height and enabling overflow scrolling on the dropdown list.",
       "target": "frontend",
       "source": {
         "messageIds": [
           "msg-6"
         ],
         "quotes": [
-          "1. tetap manual"
+          "2. dropdown panjang 3. scroll default"
         ]
       },
       "acceptanceCriteria": [
-        "Changing the selected Product Name does not change the selected Category value.",
-        "Changing the selected Product Name does not change the selected Size value.",
-        "Category and Size remain required fields and must be chosen independently."
-      ]
-    },
-    {
-      "id": "REQ-4",
-      "text": "Add an HPP field to the Product form as a plain numeric input (numbers only, no automatic Rupiah formatting) and persist it as part of the Product record in the backend.",
-      "target": "both",
-      "source": {
-        "messageIds": [
-          "msg-6"
-        ],
-        "quotes": [
-          "2. angka"
-        ]
-      },
-      "acceptanceCriteria": [
-        "ProductFormModal includes a required HPP input with type=\"number\" and minimum value 0.",
-        "The frontend submits HPP as a numeric value to the backend addProduct call.",
-        "backend/main.mo Product type includes an HPP field (stored as Nat) and addProduct accepts and stores the HPP value.",
-        "Existing app flows that call listProducts continue to work with the updated Product type."
-      ]
-    },
-    {
-      "id": "REQ-5",
-      "text": "If the canister currently has persisted products, add a conditional migration so existing product records are upgraded with a safe default HPP value (e.g., 0) without losing data.",
-      "target": "backend",
-      "source": {
-        "messageIds": [
-          "msg-5"
-        ],
-        "quotes": [
-          "Tambah field HPP"
-        ]
-      },
-      "acceptanceCriteria": [
-        "A conditional migration exists (backend/migration.mo only if needed by current persisted state) that maps older Product records to the new Product shape by adding an HPP default value.",
-        "After upgrade, listProducts returns all previously stored products and each has an HPP value set (defaulted for old records)."
+        "When the Product Name options exceed the visible area, the dropdown list becomes vertically scrollable using native/default scrolling behavior.",
+        "The dropdown list height is constrained (e.g., via a max-height class on the SelectContent) so it does not expand beyond the viewport."
       ]
     }
   ],
   "constraints": [
-    "Do not auto-fill Category or Size based on the selected Product Name.",
-    "HPP must be stored and submitted as a plain number (no automatic currency formatting requirement).",
-    "Do not edit files under frontend/src/components/ui, frontend/src/hooks/useInternetIdentity.ts(x), frontend/src/hooks/useActor.ts, or frontend/src/main.tsx (compose instead of modifying immutable paths).",
-    "Backend must remain a single Motoko actor (all logic in backend/main.mo); only add backend/migration.mo if required for state upgrade."
+    "Do not modify any files under frontend/src/components/ui (Shadcn components are read-only and must be composed via props/className usage).",
+    "Do not change backend canister architecture (single-actor) or add external databases/services."
   ],
   "nonGoals": [
-    "Do not change other pages (e.g., Products list UI, reports) beyond what is required to keep compilation and existing functionality working.",
-    "Do not add automatic mapping rules from Product Name to Category/Size.",
-    "Do not add Rupiah formatting/masking behavior to the HPP input."
+    "Do not change the Category and Size dropdowns behavior or option sets.",
+    "Do not implement auto-fill of Category/Size based on the selected Product Name.",
+    "Do not change backend schemas or add new backend endpoints unless strictly required for populating the dropdown from existing product data."
   ],
   "imageRequirements": {
     "required": [],

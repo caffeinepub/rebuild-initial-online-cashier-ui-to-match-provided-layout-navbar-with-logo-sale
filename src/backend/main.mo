@@ -9,13 +9,13 @@ import Iter "mo:core/Iter";
 import Principal "mo:core/Principal";
 import Runtime "mo:core/Runtime";
 import List "mo:core/List";
-import Migration "migration";
+
 
 import MixinAuthorization "authorization/MixinAuthorization";
 import AccessControl "authorization/access-control";
 
 // Specify migration in with clause, only activated during upgrade
-(with migration = Migration.run)
+
 actor {
   include MixinStorage();
 

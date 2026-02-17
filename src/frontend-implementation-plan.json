@@ -1,85 +1,36 @@
 {
   "kind": "implementation_plan",
   "version": "1.0",
-  "title": "Update Product form dropdowns and add numeric HPP field (frontend-only)",
+  "title": "Product Catalog — Backend-driven, scrollable Product Name dropdown",
   "requirements": [
     {
       "id": "REQ-1",
-      "summary": "Update shared product option constants so Product form Category and Size dropdowns use the fixed required values.",
+      "summary": "Populate Product Name dropdown options in ProductFormModal from the existing React Query products list (actor.listProducts) and handle loading/error states",
       "acceptanceCriteria": [
-        "In frontend/src/constants/productOptions.ts, PRODUCT_CATEGORIES exports exactly: Teh, Kopi, Matcha, Coklat, Lemon (no additional values).",
-        "In frontend/src/constants/productOptions.ts, PRODUCT_SIZES exports exactly: Kecil, Besar, Jumbo (no additional values).",
-        "ProductFormModal category and size dropdowns display only the updated options."
+        "In ProductFormModal, the Product Name Select renders options derived from the backend products list (e.g., product.name).",
+        "The hardcoded PRODUCT_NAMES constant is no longer used for the Product Name dropdown options.",
+        "The dropdown handles backend loading and error states without crashing (e.g., disables the select and/or shows a simple message/state while loading or on error)."
       ],
       "file_operations": [
         {
-          "path": "frontend/src/constants/productOptions.ts",
-          "operation": "modify",
-          "description": "Replace PRODUCT_CATEGORIES and PRODUCT_SIZES with the exact required arrays and keep exported types consistent with the updated constants."
-        },
-        {
           "path": "frontend/src/components/ProductFormModal.tsx",
           "operation": "modify",
-          "description": "Ensure the Category and Size Select controls render options exclusively from the updated PRODUCT_CATEGORIES and PRODUCT_SIZES constants. Use the existing shadcn-ui Select components to keep styling/behavior consistent; verify the component's usage instructions before implementing."
+          "description": "Replace the hardcoded PRODUCT_NAMES-based options with options derived from the existing React Query products query (useProducts / actor.listProducts), mapping to product.name (optionally de-duped/sorted) and adding safe loading/error UI states (e.g., disabled SelectTrigger while loading, simple in-dropdown message on error). Use the shadcn-ui Select/SelectContent composition (read-only ui components via props/className). Verify the component's usage instructions before implementing."
         }
       ]
     },
     {
       "id": "REQ-2",
-      "summary": "Change Product Name control to a required dropdown with the exact listed product name options.",
+      "summary": "Constrain Product Name dropdown list height and enable internal vertical scrolling for many options",
       "acceptanceCriteria": [
-        "In ProductFormModal, the \"Nama Produk\" control is a Select (dropdown), not a text Input.",
-        "The dropdown contains exactly the listed product names, with no extra or missing options.",
-        "Submitting the form sends the selected product name value as the product name."
-      ],
-      "file_operations": [
-        {
-          "path": "frontend/src/constants/productOptions.ts",
-          "operation": "modify",
-          "description": "Add an exported constant (e.g., PRODUCT_NAMES) containing exactly the required Product Name dropdown options so ProductFormModal can consume a single shared source of truth."
-        },
-        {
-          "path": "frontend/src/components/ProductFormModal.tsx",
-          "operation": "modify",
-          "description": "Replace the Product Name Input with a required shadcn-ui Select fed by the shared product-name options constant, and ensure form submission continues to send the selected value as `name`. Verify the component's usage instructions before implementing."
-        }
-      ]
-    },
-    {
-      "id": "REQ-3",
-      "summary": "Ensure Product Name selection does not auto-fill or modify Category and Size, which remain manually selectable and required.",
-      "acceptanceCriteria": [
-        "Changing the selected Product Name does not change the selected Category value.",
-        "Changing the selected Product Name does not change the selected Size value.",
-        "Category and Size remain required fields and must be chosen independently."
+        "When the Product Name options exceed the visible area, the dropdown list becomes vertically scrollable using native/default scrolling behavior.",
+        "The dropdown list height is constrained (e.g., via a max-height class on the SelectContent) so it does not expand beyond the viewport."
       ],
       "file_operations": [
         {
           "path": "frontend/src/components/ProductFormModal.tsx",
           "operation": "modify",
-          "description": "Confirm Product Name onValueChange only updates the `name` state and does not set/derive `category` or `size`; keep Category and Size as independent required Select controls. Verify the component's usage instructions before implementing."
-        }
-      ]
-    },
-    {
-      "id": "REQ-4",
-      "summary": "Add required numeric HPP input to Product form and include it in the add-product submission payload as a plain number.",
-      "acceptanceCriteria": [
-        "ProductFormModal includes a required HPP input with type=\"number\" and minimum value 0.",
-        "The frontend submits HPP as a numeric value to the backend addProduct call.",
-        "backend/main.mo Product type includes an HPP field (stored as Nat) and addProduct accepts and stores the HPP value.",
-        "Existing app flows that call listProducts continue to work with the updated Product type."
-      ],
-      "file_operations": [
-        {
-          "path": "frontend/src/components/ProductFormModal.tsx",
-          "operation": "modify",
-          "description": "Add a required HPP Input using the existing shadcn-ui Input component (type=\"number\", min=0) with its own local state, validate it similarly to salePrice, and include it in the data passed to the addProduct mutation as a numeric (BigInt) value. Verify the component's usage instructions before implementing."
-        },
-        {
-          "path": "frontend/src/hooks/useProducts.ts",
-          "operation": "modify",
-          "description": "Update useAddProduct's mutation input type to include `hpp: bigint` and pass it through to the backend actor addProduct call in the correct argument position so HPP is submitted as a plain numeric value."
+          "description": "Make the Product Name dropdown list scroll by constraining SelectContent height (e.g., max-height) and enabling overflow-y auto on the dropdown list container using className props (do not modify files under frontend/src/components/ui). Use the shadcn-ui SelectContent styling hook points. Verify the component's usage instructions before implementing."
         }
       ]
     }

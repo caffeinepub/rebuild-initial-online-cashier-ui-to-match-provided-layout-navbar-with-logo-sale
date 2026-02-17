@@ -7,34 +7,18 @@
   "isFixRequest": false,
   "existing_features": [
     {
-      "id": "feature-update-the-shared-product-option-constants-so-the-product-form-uses-fixed-dropdown-values-for-category-and-size-category-must-be-exactly-teh-kopi-matcha-coklat-lemon-and-size-must-be-exactly-kecil-besar-jumbo",
-      "title": "Update the shared product option constants so the Product form uses fixed dropdown values for Category and Size: Category must be exactly [\"Teh\", \"Kopi\", \"Matcha\", \"Coklat\", \"Lemon\"], and Size must be exactly [\"Kecil\", \"Besar\", \"Jumbo\"].",
+      "id": "feature-update-the-product-form-modal-so-the-product-name-dropdown-options-are-populated-from-backend-product-data-actor-listproducts-via-the-existing-react-query-products-query-instead-of-using-the-hardcoded-product-names-constant",
+      "title": "Update the Product Form modal so the Product Name dropdown options are populated from backend product data (actor.listProducts via the existing React Query products query) instead of using the hardcoded PRODUCT_NAMES constant.",
       "reqIds": [
         "REQ-1"
       ],
       "version": 1
     },
     {
-      "id": "feature-change-the-product-name-field-in-the-product-form-from-a-free-text-input-to-a-required-dropdown-with-these-exact-options-es-teh-ori-kecil-es-teh-ori-besar-kopi-aren-ori-kecil-kopi-aren-besar-creamilky-latte-kecil-creamilky-latte-besar-matcha-latte-choco-melt-lemon-tea-kecil-lemon-tea-besar-lemon-fresh-kecil-lemon-fresh-besar-teh-manis-hangat-kecil-teh-hangat-besar-es-batu-besar",
-      "title": "Change the Product Name field in the Product form from a free-text input to a required dropdown with these exact options: \"Es Teh Ori Kecil\", \"Es Teh Ori Besar\", \"Kopi Aren Ori Kecil\", \"Kopi Aren Besar\", \"Creamilky Latte Kecil\", \"Creamilky Latte Besar\", \"Matcha Latte\", \"Choco Melt\", \"Lemon Tea Kecil\", \"Lemon Tea Besar\", \"Lemon Fresh Kecil\", \"Lemon Fresh Besar\", \"Teh Manis Hangat Kecil\", \"Teh Hangat Besar\", \"Es Batu Besar\".",
+      "id": "feature-make-the-product-name-dropdown-a-long-dropdown-with-default-internal-scrolling-when-there-are-many-options-by-constraining-the-dropdown-content-height-and-enabling-overflow-scrolling-on-the-dropdown-list",
+      "title": "Make the Product Name dropdown a long dropdown with default internal scrolling when there are many options by constraining the dropdown content height and enabling overflow scrolling on the dropdown list.",
       "reqIds": [
         "REQ-2"
-      ],
-      "version": 1
-    },
-    {
-      "id": "feature-ensure-selecting-a-product-name-does-not-auto-fill-or-modify-category-and-size-category-and-size-must-remain-manually-selectable-by-the-user",
-      "title": "Ensure selecting a Product Name does not auto-fill or modify Category and Size; Category and Size must remain manually selectable by the user.",
-      "reqIds": [
-        "REQ-3"
-      ],
-      "version": 1
-    },
-    {
-      "id": "feature-add-an-hpp-field-to-the-product-form-as-a-plain-numeric-input-numbers-only-no-automatic-rupiah-formatting-and-persist-it-as-part-of-the-product-record-in-the-backend",
-      "title": "Add an HPP field to the Product form as a plain numeric input (numbers only, no automatic Rupiah formatting) and persist it as part of the Product record in the backend.",
-      "reqIds": [
-        "REQ-4"
       ],
       "version": 1
     }
@@ -42,28 +26,8 @@
   "new_feature_requests": [
     {
       "id": "AR-1",
-      "summary": "Update Form Produk: Kategori dropdown fixed (Teh, Kopi, Matcha, Coklat, Lemon) and Ukuran dropdown fixed (Kecil, Besar, Jumbo)",
+      "summary": "Add a long product-name dropdown in the Product Form populated from backend data, using default scroll behavior when the list is long",
       "reqIds": [],
-      "status": "pending"
-    },
-    {
-      "id": "AR-2",
-      "summary": "Add field HPP to Form Produk as numeric input (plain number, no Rp formatting)",
-      "reqIds": [],
-      "status": "pending"
-    },
-    {
-      "id": "AR-3",
-      "summary": "Change Nama Produk on Form Produk to dropdown with specified fixed options; selection does NOT auto-fill kategori/ukuran (remain manual)",
-      "reqIds": [],
-      "status": "pending"
-    },
-    {
-      "id": "AR-8",
-      "summary": "If the canister currently has persisted products, add a conditional migration so existing product records are upgraded with a safe default HPP value (e.g., 0) without losing data.",
-      "reqIds": [
-        "REQ-5"
-      ],
       "status": "pending"
     }
   ],

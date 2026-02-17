@@ -1,13 +1,11 @@
 # Specification
 
 ## Summary
-**Goal:** Update the Product form to use fixed dropdown options for Category, Size, and Product Name, and add a numeric HPP field that is stored in the backend.
+**Goal:** Populate the Product Name dropdown in the Product Form modal from backend product data and make the dropdown scrollable for long option lists.
 
 **Planned changes:**
-- Update shared product option constants so Category is exactly: Teh, Kopi, Matcha, Coklat, Lemon; and Size is exactly: Kecil, Besar, Jumbo.
-- Change the Product Name field in ProductFormModal from free-text to a required dropdown with the specified fixed list of product names.
-- Ensure selecting a Product Name does not auto-fill or modify Category or Size; both remain required and manually selectable.
-- Add a required HPP numeric input (type="number", min 0, no currency formatting) to the Product form and submit it as a number.
-- Extend the backend Product record to store HPP (Nat) and accept it in addProduct; add a conditional migration (backend/migration.mo only if needed) to default existing stored products’ HPP to 0.
+- Update ProductFormModal to derive Product Name dropdown options from the existing React Query products list (actor.listProducts) instead of the hardcoded PRODUCT_NAMES constant.
+- Add basic loading and error handling for the backend-backed options (e.g., disable/select state messaging) to prevent crashes.
+- Constrain the dropdown list height and enable default vertical scrolling for long Product Name option lists via SelectContent styling/classes.
 
-**User-visible outcome:** In the Product form, users can pick Category, Size, and Product Name from fixed dropdowns, manually choose Category/Size regardless of Product Name, and enter a numeric HPP value that is saved with each product.
+**User-visible outcome:** In the Product Form modal, the Product Name dropdown shows the current backend product names and becomes a long, scrollable dropdown when many products exist.
