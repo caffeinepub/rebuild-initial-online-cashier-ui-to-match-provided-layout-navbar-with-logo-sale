@@ -1,11 +1,12 @@
 # Specification
 
 ## Summary
-**Goal:** Update the Product Name dropdown to use the provided 13-name product list and display ~5 visible options with scrolling for the rest.
+**Goal:** Remove Internet Identity/login requirements and make the app use a single shared global dataset accessible to everyone, while applying a consistent non-blue/purple visual theme.
 
 **Planned changes:**
-- Update `frontend/src/constants/productOptions.ts` to export `PRODUCT_NAMES` containing exactly the 13 product names provided (remove any legacy/extra names).
-- Update `frontend/src/components/ProductFormModal.tsx` to import and use `PRODUCT_NAMES` for the Product Name `<Select>` options (not dependent on previously-created products).
-- Adjust the Product Name dropdown UI in the modal so it shows about 5 items at a time and supports vertical scrolling within the dropdown (fixed max height ~250px with `overflow-y-auto` applied to the dropdown’s scroll container), without modifying `frontend/src/components/ui`.
+- Update backend authorization so all core data (products, inventory, sales/transactions, reports, cash transactions, and other existing records) is readable/writable by any anonymous caller, with no admin/user gating or secret token initialization required.
+- Switch frontend data access to use an anonymous actor only by migrating relevant hooks off `useActor()` to an anonymous/public actor source, and remove any dependency on URL secret initialization for normal operation.
+- Remove Internet Identity sign-in gating from UI pages by eliminating `SignInRequiredState` and any “sign in required” conditional rendering, keeping standard loading/error states.
+- Apply a single cohesive UI theme across all pages and dialogs with consistent colors/typography/spacing, using a primary accent color that is not blue/purple.
 
-**User-visible outcome:** In the “Add New Product” modal, the Product Name dropdown lists exactly the 13 provided product names and shows ~5 at once, with smooth in-dropdown scrolling to access the remaining options.
+**User-visible outcome:** The app works fully without signing in; anyone on any device sees and can update the same shared products, inventory, transactions, and reports, with a consistent themed UI across all screens.

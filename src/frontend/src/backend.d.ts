@@ -14,8 +14,12 @@ export class ExternalBlob {
     static fromBytes(blob: Uint8Array<ArrayBuffer>): ExternalBlob;
     withUploadProgress(onProgress: (percentage: number) => void): ExternalBlob;
 }
-export interface UserProfile {
-    name: string;
+export interface SaleItem {
+    cogs: bigint;
+    productId: bigint;
+    productName: string;
+    quantity: bigint;
+    unitPrice: bigint;
 }
 export type Time = bigint;
 export interface DashboardSummary {
@@ -63,13 +67,6 @@ export interface InventoryReportEntry {
     itemSize: string;
     quantity: bigint;
 }
-export interface SaleItem {
-    cogs: bigint;
-    productId: bigint;
-    productName: string;
-    quantity: bigint;
-    unitPrice: bigint;
-}
 export interface Product {
     id: bigint;
     hpp: bigint;
@@ -104,24 +101,17 @@ export interface backendInterface {
     deleteSale(id: bigint): Promise<boolean>;
     fetchDashboardSummary(): Promise<DashboardSummary>;
     getAllCashTransactions(): Promise<Array<CashTransaction>>;
-    getCallerUserProfile(): Promise<UserProfile | null>;
     getCallerUserRole(): Promise<UserRole>;
     getCashBalance(): Promise<bigint>;
     getCashTransactionsByDate(startDate: Time, endDate: Time): Promise<Array<CashTransaction>>;
-    getDailyBalances(startDate: Time, endDate: Time): Promise<Array<[Time, bigint]>>;
     getInventoryReports(filter: string | null, daysBack: bigint | null): Promise<Array<InventoryReportEntry>>;
     getInventoryUsageStats(category: string | null, size: string | null, fromTimestamp: Time | null, toTimestamp: Time | null): Promise<bigint>;
-    getUserProfile(user: Principal): Promise<UserProfile | null>;
     isCallerAdmin(): Promise<boolean>;
     isInventoryLow(): Promise<boolean>;
     listInventoryItems(): Promise<Array<InventoryItem>>;
-    listOldProducts(): Promise<Array<[bigint, Product]>>;
     listProducts(): Promise<Array<Product>>;
-    listProductsDescending(): Promise<Array<[bigint, Product]>>;
-    listSalesDescending(): Promise<Array<[bigint, SaleRecord]>>;
     querySales(fromTimestamp: Time, toTimestamp: Time): Promise<Array<SaleRecord>>;
     recordSale(items: Array<SaleItem>, paymentMethod: PaymentMethod, totalTax: bigint): Promise<bigint>;
-    saveCallerUserProfile(profile: UserProfile): Promise<void>;
     updateCashTransaction(id: bigint, amount: bigint, transactionType: TransactionType, description: string): Promise<boolean>;
     updateInventoryItem(id: bigint, itemName: string, category: string, size: string, unit: string, initialStock: bigint, reject: bigint, finalStock: bigint, minimumStock: bigint): Promise<boolean>;
     updateSale(id: bigint, items: Array<SaleItem>, paymentMethod: PaymentMethod, totalTax: bigint): Promise<boolean>;

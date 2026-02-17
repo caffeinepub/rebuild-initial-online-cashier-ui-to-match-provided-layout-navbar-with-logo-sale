@@ -1,36 +1,122 @@
 {
   "kind": "implementation_plan",
   "version": "1.0",
-  "title": "Fix Product Name dropdown options and scrolling in Add New Product modal",
+  "title": "Anonymous-only shared dataset UI (remove Internet Identity gating) + cohesive non-blue theme",
   "requirements": [
     {
-      "id": "REQ-1",
-      "summary": "Replace legacy static product name options with the exact 13 provided names and export them from the existing constants module.",
+      "id": "REQ-2",
+      "summary": "Migrate all frontend data access to use an anonymous actor (usePublicActor) and remove reliance on authenticated actor flows.",
       "acceptanceCriteria": [
-        "`frontend/src/constants/productOptions.ts` exports a `PRODUCT_NAMES` list containing exactly these 13 strings (spelling/casing must match chat exactly): Es Teh Ori Kecil; Es Teh Ori Besar; Kopi Aren Ori Kecil; Kopi Aren Ori Besar; Creamy Latte Kecil; Creamy Latte Besar; Matcha Latte Kecil; Choco Melt Kecil; Lemon Tea Kecil; Lemon Tea Besar; Lemon Fresh Kecil; Lemon Fresh Besar; Es Batu Cup Besar",
-        "No extra legacy product names remain in `PRODUCT_NAMES` (e.g., remove items not present in the 13-name list)."
+        "`useDashboardSummary`, `useSalesReport`, `useInventory`, `useProducts`, `useRecordSale`, and `useSalesMutations` no longer import or call `useActor()` and instead use an anonymous actor source.",
+        "App loads and can list/add products, list/add/update inventory, record sales, and view reports while not logged in.",
+        "No frontend code path attempts to initialize access control via URL secret (e.g., `caffeineAdminToken`) as a prerequisite for normal operation."
       ],
       "file_operations": [
         {
-          "path": "frontend/src/constants/productOptions.ts",
+          "path": "frontend/src/hooks/useDashboardSummary.ts",
           "operation": "modify",
-          "description": "Update `PRODUCT_NAMES` to contain exactly the 13 product names from the BuildRequest (matching spelling/casing exactly) and remove any legacy entries; keep exporting `PRODUCT_NAMES` from this module for reuse across the app."
+          "description": "Replace authenticated actor dependency (`useActor`) with anonymous actor (`usePublicActor`) so dashboard summary queries work without Internet Identity. Verify the component's usage instructions before implementing."
+        },
+        {
+          "path": "frontend/src/hooks/useSalesReport.ts",
+          "operation": "modify",
+          "description": "Replace authenticated actor dependency (`useActor`) with anonymous actor (`usePublicActor`) so sales queries work without Internet Identity. Verify the component's usage instructions before implementing."
+        },
+        {
+          "path": "frontend/src/hooks/useProducts.ts",
+          "operation": "modify",
+          "description": "Update product list + add-product mutation to use the anonymous actor source (`usePublicActor`) instead of `useActor`, ensuring product browsing/creation works while anonymous. Verify the component's usage instructions before implementing."
+        },
+        {
+          "path": "frontend/src/hooks/useInventory.ts",
+          "operation": "modify",
+          "description": "Update inventory list + inventory mutations (add/update/adjust stock) to use the anonymous actor source (`usePublicActor`) instead of `useActor`, ensuring full inventory management works while anonymous. Verify the component's usage instructions before implementing."
+        },
+        {
+          "path": "frontend/src/hooks/useRecordSale.ts",
+          "operation": "modify",
+          "description": "Update record-sale mutation to use the anonymous actor source (`usePublicActor`) instead of `useActor`, ensuring sales can be recorded without login and query invalidation still refreshes dashboard/inventory. Verify the component's usage instructions before implementing."
+        },
+        {
+          "path": "frontend/src/hooks/useSalesMutations.ts",
+          "operation": "modify",
+          "description": "Update update/delete sale mutations to use the anonymous actor source (`usePublicActor`) instead of `useActor`, ensuring sales edits/deletes work without login and relevant queries refresh. Verify the component's usage instructions before implementing."
+        },
+        {
+          "path": "frontend/src/components/SalesReportPage.tsx",
+          "operation": "modify",
+          "description": "Adjust retry invalidation to refresh the anonymous-actor backed queries (stop invalidating the authenticated actor query key) so retry works when not logged in. Verify the component's usage instructions before implementing."
         }
       ]
     },
     {
-      "id": "REQ-2",
-      "summary": "Make the Add New Product modal Product Name dropdown use `PRODUCT_NAMES` and ensure the open dropdown shows ~5 items with internal vertical scrolling for the rest.",
+      "id": "REQ-3",
+      "summary": "Remove Internet Identity sign-in gating UI by eliminating SignInRequiredState usage and auth-based conditional rendering across pages.",
       "acceptanceCriteria": [
-        "`frontend/src/components/ProductFormModal.tsx` imports and uses `PRODUCT_NAMES` to populate the Product Name `<Select>` options (the dropdown is not dependent on `useProducts()` returning previously-created products).",
-        "When the Product Name dropdown is opened, about 5 options are visible without scrolling, and the remaining options are accessible via mouse wheel/trackpad scroll inside the dropdown.",
-        "The dropdown is not visually truncated to ~3 visible items on common viewport sizes; it has a fixed max height (around 250px) and `overflow-y-auto` applied to the actual scroll container used by the select dropdown."
+        "Dashboard, Products, Inventory, Transactions, and Reports do not render any \"Sign In Required\" UI when the user is anonymous.",
+        "If a backend error occurs, the UI shows the standard error UI (e.g., `QueryErrorState`) and retry still works without requiring login."
       ],
       "file_operations": [
         {
-          "path": "frontend/src/components/ProductFormModal.tsx",
+          "path": "frontend/src/components/Dashboard.tsx",
           "operation": "modify",
-          "description": "Switch Product Name `<Select>` options to come from `PRODUCT_NAMES` imported from `frontend/src/constants/productOptions.ts` (stop deriving options from `useProducts()`); adjust the Select dropdown styling by applying a fixed max-height (~250px) and `overflow-y-auto` to the actual internal scroll container used by the shadcn Select dropdown (via className composition/overrides on `SelectContent`, without modifying anything under `frontend/src/components/ui`). Verify the component's usage instructions before implementing."
+          "description": "Remove `SignInRequiredState` rendering and any `useInternetIdentity`-based auth gating; on errors always show `QueryErrorState` + retry. Verify the component's usage instructions before implementing."
+        },
+        {
+          "path": "frontend/src/components/ProductsPage.tsx",
+          "operation": "modify",
+          "description": "Remove `SignInRequiredState` rendering and any `useInternetIdentity`-based auth gating; on errors always show `QueryErrorState` + retry. Verify the component's usage instructions before implementing."
+        },
+        {
+          "path": "frontend/src/components/InventoryPage.tsx",
+          "operation": "modify",
+          "description": "Remove `SignInRequiredState` rendering and any `useInternetIdentity`-based auth gating; on errors always show `QueryErrorState` + retry. Verify the component's usage instructions before implementing."
+        },
+        {
+          "path": "frontend/src/components/TransactionPage.tsx",
+          "operation": "modify",
+          "description": "Remove `SignInRequiredState` rendering and any `useInternetIdentity`-based auth gating on product-loading errors; fall back to standard error UI. Verify the component's usage instructions before implementing."
+        },
+        {
+          "path": "frontend/src/components/InventoryReportPage.tsx",
+          "operation": "modify",
+          "description": "Remove special-casing that treats authorization failures differently; show the standard error UI (with retry) for any backend failure now that reports should be anonymous-accessible. Verify the component's usage instructions before implementing."
+        },
+        {
+          "path": "frontend/src/utils/errorMessage.ts",
+          "operation": "modify",
+          "description": "Adjust error normalization so authorization-related text does not map to an \"Authentication Required\" UX flow; keep it as a generic service/permission error message suitable for an always-anonymous app. Verify the component's usage instructions before implementing."
+        }
+      ]
+    },
+    {
+      "id": "REQ-4",
+      "summary": "Implement a cohesive non-blue/purple visual theme (colors/typography/spacing) consistent across all views and dialogs.",
+      "acceptanceCriteria": [
+        "A consistent non-blue/purple primary accent color is used across buttons/links/highlights.",
+        "Typography and spacing feel consistent across Dashboard, Products, Inventory, Transactions, and Reports.",
+        "No layout regressions: navigation and all existing screens remain usable on laptop and mobile web."
+      ],
+      "file_operations": [
+        {
+          "path": "frontend/src/index.css",
+          "operation": "modify",
+          "description": "Update global CSS variables/tokens to adopt a cohesive lightweight internal-tool theme with a non-blue/purple primary accent (e.g., green/earth-tone) and consistent foreground/background/muted/border styling across light/dark modes. Verify the component's usage instructions before implementing."
+        },
+        {
+          "path": "frontend/tailwind.config.js",
+          "operation": "modify",
+          "description": "Align Tailwind theme mappings/extended tokens to the updated global CSS variables so all shadcn/ui compositions inherit the new non-blue/purple accent consistently (without editing `frontend/src/components/ui`). Verify the component's usage instructions before implementing."
+        },
+        {
+          "path": "frontend/src/components/Navbar.tsx",
+          "operation": "modify",
+          "description": "Ensure navigation active/hover states rely on theme tokens (e.g., `text-primary`, `bg-accent`) and remain readable/usable on mobile and desktop with the updated palette. Verify the component's usage instructions before implementing."
+        },
+        {
+          "path": "frontend/src/App.tsx",
+          "operation": "modify",
+          "description": "Confirm app shell background/containers/spacing consistently use theme tokens so all views/dialogs feel cohesive after the palette update (no new routes). Verify the component's usage instructions before implementing."
         }
       ]
     }

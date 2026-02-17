@@ -2,30 +2,16 @@
   "kind": "feature_evidence_report",
   "features": [
     {
-      "featureId": "feature-update-the-static-product-name-options-to-exactly-match-the-13-product-names-provided-in-chat-and-expose-them-from-the-existing-frontend-constants-module",
-      "featureTitle": "Update the static product name options to exactly match the 13 product names provided in chat, and expose them from the existing frontend constants module.",
+      "featureId": "feature-switch-all-frontend-data-access-to-use-an-anonymous-actor-only-no-authenticated-actor-flow-by-migrating-all-hooks-that-currently-depend-on-useactor-to-use-usepublicactor-or-a-new-non-immutable-equivalent-so-the-app-functions-fully-without-any-internet-identity-login",
+      "featureTitle": "Switch all frontend data access to use an anonymous actor only (no authenticated actor flow) by migrating all hooks that currently depend on `useActor()` to use `usePublicActor()` (or a new non-immutable equivalent), so the app functions fully without any Internet Identity login.",
       "files": [
-        "frontend/src/constants/productOptions.ts"
-      ],
-      "components": [
-        "core-infrastructure@1.0.2",
-        "shadcn-ui@1.0.0",
-        "build-template-react@1.0.0",
-        "initial-app@1.0.0",
-        "github-export-icp-cli@1.0.0",
-        "blob-storage@4.0.0",
-        "authorization@4.0.0"
-      ],
-      "testIds": [
-        "REQ-1"
-      ],
-      "confidence": "high"
-    },
-    {
-      "featureId": "feature-in-the-add-new-product-modal-make-the-product-name-dropdown-use-the-provided-chat-product-list-and-ensure-the-dropdown-shows-approximately-5-items-at-a-time-with-vertical-scrolling-enabled-for-the-remaining-items-not-limited-to-3-visible-items",
-      "featureTitle": "In the “Add New Product” modal, make the Product Name dropdown use the provided chat product list, and ensure the dropdown shows approximately 5 items at a time with vertical scrolling enabled for the remaining items (not limited to ~3 visible items).",
-      "files": [
-        "frontend/src/components/ProductFormModal.tsx"
+        "frontend/src/components/SalesReportPage.tsx",
+        "frontend/src/hooks/useDashboardSummary.ts",
+        "frontend/src/hooks/useInventory.ts",
+        "frontend/src/hooks/useProducts.ts",
+        "frontend/src/hooks/useRecordSale.ts",
+        "frontend/src/hooks/useSalesMutations.ts",
+        "frontend/src/hooks/useSalesReport.ts"
       ],
       "components": [
         "core-infrastructure@1.0.2",
@@ -38,6 +24,51 @@
       ],
       "testIds": [
         "REQ-2"
+      ],
+      "confidence": "high"
+    },
+    {
+      "featureId": "feature-remove-internet-identity-sign-in-gating-from-ui-pages-by-eliminating-usage-of-signinrequiredstate-and-any-sign-in-required-conditional-rendering-so-pages-show-either-the-normal-content-loading-states-or-non-auth-error-states",
+      "featureTitle": "Remove Internet Identity sign-in gating from UI pages by eliminating usage of `SignInRequiredState` and any \"sign in required\" conditional rendering, so pages show either the normal content, loading states, or non-auth error states.",
+      "files": [
+        "frontend/src/components/Dashboard.tsx",
+        "frontend/src/components/InventoryPage.tsx",
+        "frontend/src/components/InventoryReportPage.tsx",
+        "frontend/src/components/ProductsPage.tsx",
+        "frontend/src/components/TransactionPage.tsx",
+        "frontend/src/utils/errorMessage.ts"
+      ],
+      "components": [
+        "core-infrastructure@1.0.2",
+        "shadcn-ui@1.0.0",
+        "build-template-react@1.0.0",
+        "initial-app@1.0.0",
+        "github-export-icp-cli@1.0.0",
+        "blob-storage@4.0.0",
+        "authorization@4.0.0"
+      ],
+      "testIds": [
+        "REQ-3"
+      ],
+      "confidence": "high"
+    },
+    {
+      "featureId": "feature-apply-a-single-cohesive-visual-theme-across-the-app-colors-typography-spacing-and-component-styling-appropriate-for-a-lightweight-shared-internal-tool-avoid-blue-purple-as-primary-colors-and-keep-the-theme-consistent-across-all-views-and-dialogs",
+      "featureTitle": "Apply a single cohesive visual theme across the app (colors, typography, spacing, and component styling) appropriate for a lightweight shared internal tool; avoid blue/purple as primary colors and keep the theme consistent across all views and dialogs.",
+      "files": [
+        "frontend/src/index.css"
+      ],
+      "components": [
+        "core-infrastructure@1.0.2",
+        "shadcn-ui@1.0.0",
+        "build-template-react@1.0.0",
+        "initial-app@1.0.0",
+        "github-export-icp-cli@1.0.0",
+        "blob-storage@4.0.0",
+        "authorization@4.0.0"
+      ],
+      "testIds": [
+        "REQ-4"
       ],
       "confidence": "high"
     }

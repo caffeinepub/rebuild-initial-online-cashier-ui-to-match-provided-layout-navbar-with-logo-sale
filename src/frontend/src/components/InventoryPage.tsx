@@ -6,11 +6,8 @@ import AdjustStockModal from './AdjustStockModal';
 import EditInventoryItemModal from './EditInventoryItemModal';
 import { useInventory } from '../hooks/useInventory';
 import QueryErrorState from './QueryErrorState';
-import SignInRequiredState from './SignInRequiredState';
 import type { InventoryItem } from '../backend';
 import { useInvalidateActorQueries } from '../hooks/useInvalidateActorQueries';
-import { normalizeErrorMessage } from '../utils/errorMessage';
-import { useInternetIdentity } from '../hooks/useInternetIdentity';
 import {
   Table,
   TableBody,
@@ -34,7 +31,6 @@ export default function InventoryPage() {
 
   const { data: inventory, isLoading, error, refetch } = useInventory();
   const { invalidateActorQueries } = useInvalidateActorQueries();
-  const { identity } = useInternetIdentity();
 
   const handleAddStock = (item: InventoryItem) => {
     setAdjustStockModal({ open: true, item, mode: 'add' });
@@ -76,25 +72,10 @@ export default function InventoryPage() {
           <p className="text-muted-foreground">Memuat inventori...</p>
         </div>
       ) : error ? (
-        (() => {
-          const normalizedError = normalizeErrorMessage(error);
-          
-          if (normalizedError.isAuthError && !identity) {
-            return (
-              <SignInRequiredState
-                title="Sign In to View Inventory"
-                description="You need to sign in with Internet Identity to view and manage inventory."
-              />
-            );
-          }
-
-          return (
-            <QueryErrorState
-              error={error}
-              onRetry={handleRetry}
-            />
-          );
-        })()
+        <QueryErrorState
+          error={error}
+          onRetry={handleRetry}
+        />
       ) : !inventory || inventory.length === 0 ? (
         <div className="border border-border rounded-lg p-12 text-center">
           <Package className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
@@ -150,7 +131,7 @@ export default function InventoryPage() {
                         Kurangi
                       </Button>
                       <Button
-                        variant="ghost"
+                        variant="outline"
                         size="sm"
                         onClick={() => handleEdit(item)}
                       >
@@ -165,18 +146,16 @@ export default function InventoryPage() {
         </div>
       )}
 
-      <InventoryFormModal
-        open={isFormOpen}
+      <InventoryFormModal 
+        open={isFormOpen} 
         onOpenChange={setIsFormOpen}
         inventoryList={inventory || []}
       />
-
+      
       {adjustStockModal.item && (
         <AdjustStockModal
           open={adjustStockModal.open}
-          onOpenChange={(open) =>
-            setAdjustStockModal({ ...adjustStockModal, open })
-          }
+          onOpenChange={(open) => setAdjustStockModal({ ...adjustStockModal, open })}
           item={adjustStockModal.item}
           mode={adjustStockModal.mode}
         />

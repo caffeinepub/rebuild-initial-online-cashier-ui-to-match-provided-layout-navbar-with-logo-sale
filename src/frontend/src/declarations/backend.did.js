@@ -48,7 +48,6 @@ export const CashTransaction = IDL.Record({
   'timestamp' : Time,
   'amount' : IDL.Nat,
 });
-export const UserProfile = IDL.Record({ 'name' : IDL.Text });
 export const InventoryReportEntry = IDL.Record({
   'description' : IDL.Text,
   'timestamp' : Time,
@@ -165,17 +164,11 @@ export const idlService = IDL.Service({
       [IDL.Vec(CashTransaction)],
       ['query'],
     ),
-  'getCallerUserProfile' : IDL.Func([], [IDL.Opt(UserProfile)], ['query']),
   'getCallerUserRole' : IDL.Func([], [UserRole], ['query']),
   'getCashBalance' : IDL.Func([], [IDL.Nat], ['query']),
   'getCashTransactionsByDate' : IDL.Func(
       [Time, Time],
       [IDL.Vec(CashTransaction)],
-      ['query'],
-    ),
-  'getDailyBalances' : IDL.Func(
-      [Time, Time],
-      [IDL.Vec(IDL.Tuple(Time, IDL.Nat))],
       ['query'],
     ),
   'getInventoryReports' : IDL.Func(
@@ -188,37 +181,16 @@ export const idlService = IDL.Service({
       [IDL.Nat],
       [],
     ),
-  'getUserProfile' : IDL.Func(
-      [IDL.Principal],
-      [IDL.Opt(UserProfile)],
-      ['query'],
-    ),
   'isCallerAdmin' : IDL.Func([], [IDL.Bool], ['query']),
   'isInventoryLow' : IDL.Func([], [IDL.Bool], ['query']),
   'listInventoryItems' : IDL.Func([], [IDL.Vec(InventoryItem)], ['query']),
-  'listOldProducts' : IDL.Func(
-      [],
-      [IDL.Vec(IDL.Tuple(IDL.Nat, Product))],
-      ['query'],
-    ),
   'listProducts' : IDL.Func([], [IDL.Vec(Product)], ['query']),
-  'listProductsDescending' : IDL.Func(
-      [],
-      [IDL.Vec(IDL.Tuple(IDL.Nat, Product))],
-      ['query'],
-    ),
-  'listSalesDescending' : IDL.Func(
-      [],
-      [IDL.Vec(IDL.Tuple(IDL.Nat, SaleRecord))],
-      ['query'],
-    ),
   'querySales' : IDL.Func([Time, Time], [IDL.Vec(SaleRecord)], ['query']),
   'recordSale' : IDL.Func(
       [IDL.Vec(SaleItem), PaymentMethod, IDL.Nat],
       [IDL.Nat],
       [],
     ),
-  'saveCallerUserProfile' : IDL.Func([UserProfile], [], []),
   'updateCashTransaction' : IDL.Func(
       [IDL.Nat, IDL.Nat, TransactionType, IDL.Text],
       [IDL.Bool],
@@ -289,7 +261,6 @@ export const idlFactory = ({ IDL }) => {
     'timestamp' : Time,
     'amount' : IDL.Nat,
   });
-  const UserProfile = IDL.Record({ 'name' : IDL.Text });
   const InventoryReportEntry = IDL.Record({
     'description' : IDL.Text,
     'timestamp' : Time,
@@ -406,17 +377,11 @@ export const idlFactory = ({ IDL }) => {
         [IDL.Vec(CashTransaction)],
         ['query'],
       ),
-    'getCallerUserProfile' : IDL.Func([], [IDL.Opt(UserProfile)], ['query']),
     'getCallerUserRole' : IDL.Func([], [UserRole], ['query']),
     'getCashBalance' : IDL.Func([], [IDL.Nat], ['query']),
     'getCashTransactionsByDate' : IDL.Func(
         [Time, Time],
         [IDL.Vec(CashTransaction)],
-        ['query'],
-      ),
-    'getDailyBalances' : IDL.Func(
-        [Time, Time],
-        [IDL.Vec(IDL.Tuple(Time, IDL.Nat))],
         ['query'],
       ),
     'getInventoryReports' : IDL.Func(
@@ -429,37 +394,16 @@ export const idlFactory = ({ IDL }) => {
         [IDL.Nat],
         [],
       ),
-    'getUserProfile' : IDL.Func(
-        [IDL.Principal],
-        [IDL.Opt(UserProfile)],
-        ['query'],
-      ),
     'isCallerAdmin' : IDL.Func([], [IDL.Bool], ['query']),
     'isInventoryLow' : IDL.Func([], [IDL.Bool], ['query']),
     'listInventoryItems' : IDL.Func([], [IDL.Vec(InventoryItem)], ['query']),
-    'listOldProducts' : IDL.Func(
-        [],
-        [IDL.Vec(IDL.Tuple(IDL.Nat, Product))],
-        ['query'],
-      ),
     'listProducts' : IDL.Func([], [IDL.Vec(Product)], ['query']),
-    'listProductsDescending' : IDL.Func(
-        [],
-        [IDL.Vec(IDL.Tuple(IDL.Nat, Product))],
-        ['query'],
-      ),
-    'listSalesDescending' : IDL.Func(
-        [],
-        [IDL.Vec(IDL.Tuple(IDL.Nat, SaleRecord))],
-        ['query'],
-      ),
     'querySales' : IDL.Func([Time, Time], [IDL.Vec(SaleRecord)], ['query']),
     'recordSale' : IDL.Func(
         [IDL.Vec(SaleItem), PaymentMethod, IDL.Nat],
         [IDL.Nat],
         [],
       ),
-    'saveCallerUserProfile' : IDL.Func([UserProfile], [], []),
     'updateCashTransaction' : IDL.Func(
         [IDL.Nat, IDL.Nat, TransactionType, IDL.Text],
         [IDL.Bool],

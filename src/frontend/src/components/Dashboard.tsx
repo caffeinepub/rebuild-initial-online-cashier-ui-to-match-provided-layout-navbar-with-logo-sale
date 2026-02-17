@@ -6,18 +6,14 @@ import { useDashboardSummary } from '../hooks/useDashboardSummary';
 import { useInventory } from '../hooks/useInventory';
 import { Loader2 } from 'lucide-react';
 import QueryErrorState from './QueryErrorState';
-import SignInRequiredState from './SignInRequiredState';
 import LowStockWarningDialog from './LowStockWarningDialog';
 import { useInvalidateActorQueries } from '../hooks/useInvalidateActorQueries';
-import { normalizeErrorMessage } from '../utils/errorMessage';
-import { useInternetIdentity } from '../hooks/useInternetIdentity';
 import type { InventoryItem } from '../backend';
 
 export default function Dashboard() {
   const { data: summary, isLoading, error, refetch } = useDashboardSummary();
   const { data: inventory, isLoading: inventoryLoading } = useInventory();
   const { invalidateActorQueries } = useInvalidateActorQueries();
-  const { identity } = useInternetIdentity();
   const [showLowStockDialog, setShowLowStockDialog] = useState(false);
 
   const formatCurrency = (value: bigint | number) => {
@@ -64,18 +60,6 @@ export default function Dashboard() {
   }
 
   if (error) {
-    const normalizedError = normalizeErrorMessage(error);
-    
-    // Show sign-in required state if it's an auth error and user is not authenticated
-    if (normalizedError.isAuthError && !identity) {
-      return (
-        <SignInRequiredState
-          title="Sign In to View Dashboard"
-          description="You need to sign in with Internet Identity to view the dashboard and sales data."
-        />
-      );
-    }
-
     return (
       <QueryErrorState
         error={error}

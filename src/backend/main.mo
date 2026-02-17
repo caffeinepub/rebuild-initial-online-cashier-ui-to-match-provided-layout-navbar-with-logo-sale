@@ -6,20 +6,18 @@ import Array "mo:core/Array";
 import Text "mo:core/Text";
 import Time "mo:core/Time";
 import Iter "mo:core/Iter";
+import List "mo:core/List";
+import Migration "migration";
+import AccessControl "authorization/access-control";
+import MixinAuthorization "authorization/MixinAuthorization";
 import Principal "mo:core/Principal";
 import Runtime "mo:core/Runtime";
-import List "mo:core/List";
 
-import MixinAuthorization "authorization/MixinAuthorization";
-import AccessControl "authorization/access-control";
-
-// Specify migration in with clause, only activated during upgrade
-
+(with migration = Migration.run)
 actor {
-  include MixinStorage();
-
   let accessControlState = AccessControl.initState();
   include MixinAuthorization(accessControlState);
+  include MixinStorage();
 
   type Product = {
     id : Nat;
@@ -31,7 +29,6 @@ actor {
     image : Storage.ExternalBlob;
   };
 
-  // Updated InventoryItem model with minimumStock field
   type InventoryItem = {
     id : Nat;
     itemName : Text;
@@ -82,10 +79,6 @@ actor {
     trf : Nat;
   };
 
-  public type UserProfile = {
-    name : Text;
-  };
-
   type QontohStockRule = {
     productCategory : Text;
     productSize : Text;
@@ -114,13 +107,19 @@ actor {
     description : Text;
   };
 
+  public type UserProfile = {
+    name : Text;
+  };
+
   let products = Map.empty<Nat, Product>();
   let inventory = Map.empty<Nat, InventoryItem>();
   let sales = Map.empty<Nat, SaleRecord>();
   let rules = Map.empty<Nat, QontohStockRule>();
-  let userProfiles = Map.empty<Principal, UserProfile>();
   let cashTransactions = Map.empty<Nat, CashTransaction>();
   let inventoryReports = List.empty<InventoryReportEntry>();
+
+  // User profiles should be persisted to state
+  let userProfiles = Map.empty<Principal, UserProfile>();
 
   var nextProductId = 0;
   var nextInventoryId = 0;
@@ -128,34 +127,7 @@ actor {
   var nextStockRuleId = 0;
   var nextCashTransactionId = 0;
 
-  // User Profile Functions
-  public query ({ caller }) func getCallerUserProfile() : async ?UserProfile {
-    if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
-      Runtime.trap("Unauthorized: Only users can view profiles");
-    };
-    userProfiles.get(caller);
-  };
-
-  public query ({ caller }) func getUserProfile(user : Principal) : async ?UserProfile {
-    if (caller != user and not AccessControl.isAdmin(accessControlState, caller)) {
-      Runtime.trap("Unauthorized: Can only view your own profile");
-    };
-    userProfiles.get(user);
-  };
-
-  public shared ({ caller }) func saveCallerUserProfile(profile : UserProfile) : async () {
-    if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
-      Runtime.trap("Unauthorized: Only users can save profiles");
-    };
-    userProfiles.add(caller, profile);
-  };
-
-  // Product Management Functions
   public shared ({ caller }) func addProduct(name : Text, size : Text, category : Text, salePrice : Nat, hpp : Nat, image : Storage.ExternalBlob) : async Nat {
-    if (not (AccessControl.hasPermission(accessControlState, caller, #admin))) {
-      Runtime.trap("Unauthorized: Only admin can add new product");
-    };
-
     let productId = nextProductId;
     let product : Product = {
       id = productId;
@@ -175,19 +147,10 @@ actor {
     name.toLower();
   };
 
-  // Inventory Management Functions
   public shared ({ caller }) func addInventoryItem(itemName : Text, category : Text, size : Text, unit : Text, initialStock : Nat, reject : Nat, finalStock : Nat, minimumStock : Nat) : async ?Nat {
-    if (not (AccessControl.hasPermission(accessControlState, caller, #admin))) {
-      Runtime.trap("Unauthorized: Only admin can add inventory items");
-    };
-
     let normalized = normalizeName(itemName);
     if (normalized.isEmpty()) { return null };
-    let nameExists = inventory.values().any(
-      func(item) {
-        normalizeName(item.itemName) == normalized;
-      }
-    );
+    let nameExists = inventory.values().any(func(item) { normalizeName(item.itemName) == normalized });
 
     if (nameExists) { return null };
 
@@ -210,22 +173,12 @@ actor {
   };
 
   public shared ({ caller }) func updateInventoryItem(id : Nat, itemName : Text, category : Text, size : Text, unit : Text, initialStock : Nat, reject : Nat, finalStock : Nat, minimumStock : Nat) : async Bool {
-    if (not (AccessControl.hasPermission(accessControlState, caller, #admin))) {
-      Runtime.trap("Unauthorized: Only admin can update inventory items");
-    };
-
     switch (inventory.get(id)) {
       case (null) { false };
       case (?_) {
         let normalized = normalizeName(itemName);
         if (normalized.isEmpty()) { return false };
-
-        let nameExists = inventory.values().any(
-          func(item) {
-            item.id != id and normalizeName(item.itemName) == normalized;
-          }
-        );
-
+        let nameExists = inventory.values().any(func(item) { item.id != id and normalizeName(item.itemName) == normalized });
         if (nameExists) { return false };
 
         let updatedItem : InventoryItem = {
@@ -245,12 +198,7 @@ actor {
     };
   };
 
-  // Only called by admin.
   public shared ({ caller }) func adjustInventoryStock(itemId : Nat, quantity : Nat, isAddition : Bool, description : Text) : async Bool {
-    if (not (AccessControl.hasPermission(accessControlState, caller, #admin))) {
-      Runtime.trap("Unauthorized: Only admin can adjust inventory stock");
-    };
-
     switch (inventory.get(itemId)) {
       case (null) { false };
       case (?item) {
@@ -259,13 +207,10 @@ actor {
         } else {
           if (item.finalStock >= quantity) { item.finalStock - quantity } else { return false };
         };
-        let updatedItem = {
-          item with
-          finalStock = newFinalStock
-        };
+
+        let updatedItem = { item with finalStock = newFinalStock };
         inventory.add(itemId, updatedItem);
 
-        // Record stock adjustment in inventory reports ordered by time, newest first
         let reportEntry : InventoryReportEntry = {
           timestamp = Time.now();
           itemName = item.itemName;
@@ -280,30 +225,18 @@ actor {
     };
   };
 
-  // Query Functions - Read operations accessible to authenticated users
   public query ({ caller }) func listProducts() : async [Product] {
-    if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
-      Runtime.trap("Unauthorized: Only users can view products");
-    };
     products.values().toArray();
   };
 
   public query ({ caller }) func listInventoryItems() : async [InventoryItem] {
-    if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
-      Runtime.trap("Unauthorized: Only users can view inventory");
-    };
     inventory.values().toArray();
   };
 
   public query ({ caller }) func isInventoryLow() : async Bool {
-    if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
-      Runtime.trap("Unauthorized: Only users can check inventory status");
-    };
-
     inventory.values().any(func(item) { item.finalStock <= item.minimumStock });
   };
 
-  // New function to get inventory report entries
   public query ({ caller }) func getInventoryReports(filter : ?Text, daysBack : ?Nat) : async [InventoryReportEntry] {
     let filteredReports = inventoryReports.reverse().filter(
       func(entry) {
@@ -326,10 +259,6 @@ actor {
   };
 
   public query ({ caller }) func fetchDashboardSummary() : async DashboardSummary {
-    if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
-      Runtime.trap("Unauthorized: Only users can view dashboard");
-    };
-
     let currentTime = Time.now();
     let dayStart = currentTime - (currentTime % 86400000000000);
     var todayRevenue = 0;
@@ -365,12 +294,7 @@ actor {
     };
   };
 
-  // Sales Functions
   public shared ({ caller }) func recordSale(items : [SaleItem], paymentMethod : PaymentMethod, totalTax : Nat) : async Nat {
-    if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
-      Runtime.trap("Unauthorized: Only users can record sales");
-    };
-
     let saleId = nextSaleId;
     let totalAmount = items.foldLeft(0, func(acc, item) { acc + (item.quantity * item.unitPrice) });
     let totalQuantity = items.foldLeft(0, func(acc, item) { acc + item.quantity });
@@ -420,10 +344,6 @@ actor {
   };
 
   public query ({ caller }) func querySales(fromTimestamp : Time.Time, toTimestamp : Time.Time) : async [SaleRecord] {
-    if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
-      Runtime.trap("Unauthorized: Only users can query sales");
-    };
-
     sales.values().toArray().filter(
       func(sale) {
         sale.timestamp >= fromTimestamp and sale.timestamp <= toTimestamp
@@ -432,10 +352,6 @@ actor {
   };
 
   public shared ({ caller }) func updateSale(id : Nat, items : [SaleItem], paymentMethod : PaymentMethod, totalTax : Nat) : async Bool {
-    if (not (AccessControl.hasPermission(accessControlState, caller, #admin))) {
-      Runtime.trap("Unauthorized: Only admin can update sales");
-    };
-
     switch (sales.get(id)) {
       case (null) { false };
       case (?existingSale) {
@@ -458,10 +374,6 @@ actor {
   };
 
   public shared ({ caller }) func deleteSale(id : Nat) : async Bool {
-    if (not (AccessControl.hasPermission(accessControlState, caller, #admin))) {
-      Runtime.trap("Unauthorized: Only admin can delete sales");
-    };
-
     if (sales.containsKey(id)) {
       sales.remove(id);
       true;
@@ -470,16 +382,7 @@ actor {
     };
   };
 
-  func getDayStartTimestamp(timestamp : Time.Time) : Time.Time {
-    let nanosecondsPerDay : Time.Time = 86400000000000;
-    timestamp - (timestamp % nanosecondsPerDay);
-  };
-
   public shared ({ caller }) func getInventoryUsageStats(category : ?Text, size : ?Text, fromTimestamp : ?Time.Time, toTimestamp : ?Time.Time) : async Nat {
-    if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
-      Runtime.trap("Unauthorized: Only users can view inventory usage stats");
-    };
-
     var totalUsage = 0;
 
     for (sale in sales.values()) {
@@ -528,12 +431,7 @@ actor {
     totalUsage;
   };
 
-  // Cash Transaction Functions
   public shared ({ caller }) func addCashTransaction(amount : Nat, transactionType : TransactionType, description : Text) : async Nat {
-    if (not (AccessControl.hasPermission(accessControlState, caller, #admin))) {
-      Runtime.trap("Unauthorized: Only admin can add cash transactions");
-    };
-
     let transactionId = nextCashTransactionId;
     let transaction : CashTransaction = {
       id = transactionId;
@@ -548,10 +446,6 @@ actor {
   };
 
   public query ({ caller }) func getCashTransactionsByDate(startDate : Time.Time, endDate : Time.Time) : async [CashTransaction] {
-    if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
-      Runtime.trap("Unauthorized: Only users can view cash transactions");
-    };
-
     cashTransactions.values().toArray().filter(
       func(transaction) {
         transaction.timestamp >= startDate and transaction.timestamp <= endDate
@@ -560,18 +454,10 @@ actor {
   };
 
   public query ({ caller }) func getAllCashTransactions() : async [CashTransaction] {
-    if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
-      Runtime.trap("Unauthorized: Only users can view cash transactions");
-    };
-
     cashTransactions.values().toArray();
   };
 
   public shared ({ caller }) func updateCashTransaction(id : Nat, amount : Nat, transactionType : TransactionType, description : Text) : async Bool {
-    if (not (AccessControl.hasPermission(accessControlState, caller, #admin))) {
-      Runtime.trap("Unauthorized: Only admin can update cash transactions");
-    };
-
     switch (cashTransactions.get(id)) {
       case (null) { false };
       case (?existingTransaction) {
@@ -589,10 +475,6 @@ actor {
   };
 
   public shared ({ caller }) func deleteCashTransaction(id : Nat) : async Bool {
-    if (not (AccessControl.hasPermission(accessControlState, caller, #admin))) {
-      Runtime.trap("Unauthorized: Only admin can delete cash transactions");
-    };
-
     if (cashTransactions.containsKey(id)) {
       cashTransactions.remove(id);
       true;
@@ -602,10 +484,6 @@ actor {
   };
 
   public query ({ caller }) func getCashBalance() : async Nat {
-    if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
-      Runtime.trap("Unauthorized: Only users can view cash balance");
-    };
-
     var balance = 0;
 
     for (transaction in cashTransactions.values()) {
@@ -620,64 +498,5 @@ actor {
     };
 
     balance;
-  };
-
-  public query ({ caller }) func getDailyBalances(startDate : Time.Time, endDate : Time.Time) : async [(Time.Time, Nat)] {
-    if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
-      Runtime.trap("Unauthorized: Only users can view daily balances");
-    };
-
-    let daysCount : Nat = Nat64.toNat(
-      if ((endDate - startDate) > 0) { 0 } else { 0 }
-    );
-    var currentBalance : Nat = 0;
-    let dailyBalances : [(Time.Time, Nat)] = Array.tabulate<(Time.Time, Nat)>(
-      daysCount,
-      func(dayIndex) {
-        let currentDayStart : Time.Time = startDate + (87600000000000 * dayIndex);
-
-        for (transaction in cashTransactions.values()) {
-          if (getDayStartTimestamp(transaction.timestamp) == currentDayStart) {
-            switch (transaction.transactionType) {
-              case (#income) { currentBalance += transaction.amount };
-              case (#expense) {
-                if (currentBalance >= transaction.amount) {
-                  currentBalance -= transaction.amount;
-                };
-              };
-            };
-          };
-        };
-        (currentDayStart, currentBalance);
-      },
-    );
-    dailyBalances;
-  };
-
-  public query ({ caller }) func listOldProducts() : async [(Nat, Product)] {
-    if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
-      Runtime.trap("Unauthorized: Only users can view products");
-    };
-
-    let productArray = products.toArray();
-    productArray.reverse();
-  };
-
-  public query ({ caller }) func listProductsDescending() : async [(Nat, Product)] {
-    if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
-      Runtime.trap("Unauthorized: Only users can view products");
-    };
-
-    let productArray = products.toArray();
-    productArray.reverse();
-  };
-
-  public query ({ caller }) func listSalesDescending() : async [(Nat, SaleRecord)] {
-    if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
-      Runtime.trap("Unauthorized: Only users can view sales");
-    };
-
-    let salesArray = sales.toArray();
-    salesArray.reverse();
   };
 };

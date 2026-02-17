@@ -79,7 +79,6 @@ export interface SaleRecord {
 export type Time = bigint;
 export type TransactionType = { 'expense' : null } |
   { 'income' : null };
-export interface UserProfile { 'name' : string }
 export type UserRole = { 'admin' : null } |
   { 'user' : null } |
   { 'guest' : null };
@@ -129,14 +128,12 @@ export interface _SERVICE {
   'deleteSale' : ActorMethod<[bigint], boolean>,
   'fetchDashboardSummary' : ActorMethod<[], DashboardSummary>,
   'getAllCashTransactions' : ActorMethod<[], Array<CashTransaction>>,
-  'getCallerUserProfile' : ActorMethod<[], [] | [UserProfile]>,
   'getCallerUserRole' : ActorMethod<[], UserRole>,
   'getCashBalance' : ActorMethod<[], bigint>,
   'getCashTransactionsByDate' : ActorMethod<
     [Time, Time],
     Array<CashTransaction>
   >,
-  'getDailyBalances' : ActorMethod<[Time, Time], Array<[Time, bigint]>>,
   'getInventoryReports' : ActorMethod<
     [[] | [string], [] | [bigint]],
     Array<InventoryReportEntry>
@@ -145,17 +142,12 @@ export interface _SERVICE {
     [[] | [string], [] | [string], [] | [Time], [] | [Time]],
     bigint
   >,
-  'getUserProfile' : ActorMethod<[Principal], [] | [UserProfile]>,
   'isCallerAdmin' : ActorMethod<[], boolean>,
   'isInventoryLow' : ActorMethod<[], boolean>,
   'listInventoryItems' : ActorMethod<[], Array<InventoryItem>>,
-  'listOldProducts' : ActorMethod<[], Array<[bigint, Product]>>,
   'listProducts' : ActorMethod<[], Array<Product>>,
-  'listProductsDescending' : ActorMethod<[], Array<[bigint, Product]>>,
-  'listSalesDescending' : ActorMethod<[], Array<[bigint, SaleRecord]>>,
   'querySales' : ActorMethod<[Time, Time], Array<SaleRecord>>,
   'recordSale' : ActorMethod<[Array<SaleItem>, PaymentMethod, bigint], bigint>,
-  'saveCallerUserProfile' : ActorMethod<[UserProfile], undefined>,
   'updateCashTransaction' : ActorMethod<
     [bigint, bigint, TransactionType, string],
     boolean

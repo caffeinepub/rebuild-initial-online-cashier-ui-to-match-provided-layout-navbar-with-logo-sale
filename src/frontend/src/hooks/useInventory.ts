@@ -1,9 +1,9 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { useActor } from './useActor';
+import { usePublicActor } from './usePublicActor';
 import type { InventoryItem } from '../backend';
 
 export function useInventory() {
-  const { actor, isFetching: actorFetching } = useActor();
+  const { actor, isFetching: actorFetching } = usePublicActor();
 
   return useQuery<InventoryItem[]>({
     queryKey: ['inventory'],
@@ -17,7 +17,7 @@ export function useInventory() {
 }
 
 export function useAddInventory() {
-  const { actor } = useActor();
+  const { actor } = usePublicActor();
   const queryClient = useQueryClient();
 
   return useMutation({
@@ -58,7 +58,7 @@ export function useAddInventory() {
 }
 
 export function useUpdateInventoryItem() {
-  const { actor } = useActor();
+  const { actor } = usePublicActor();
   const queryClient = useQueryClient();
 
   return useMutation({
@@ -101,7 +101,7 @@ export function useUpdateInventoryItem() {
 }
 
 export function useAdjustInventoryStock() {
-  const { actor } = useActor();
+  const { actor } = usePublicActor();
   const queryClient = useQueryClient();
 
   return useMutation({

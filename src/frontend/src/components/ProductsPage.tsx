@@ -4,10 +4,7 @@ import { Plus, Loader2, Package, ImageIcon, ArrowLeft } from 'lucide-react';
 import ProductFormModal from './ProductFormModal';
 import { useProducts } from '../hooks/useProducts';
 import QueryErrorState from './QueryErrorState';
-import SignInRequiredState from './SignInRequiredState';
 import { useInvalidateActorQueries } from '../hooks/useInvalidateActorQueries';
-import { normalizeErrorMessage } from '../utils/errorMessage';
-import { useInternetIdentity } from '../hooks/useInternetIdentity';
 
 interface ProductsPageProps {
   onNavigateDashboard: () => void;
@@ -17,7 +14,6 @@ export default function ProductsPage({ onNavigateDashboard }: ProductsPageProps)
   const [isFormOpen, setIsFormOpen] = useState(false);
   const { data: products, isLoading, error, refetch } = useProducts();
   const { invalidateActorQueries } = useInvalidateActorQueries();
-  const { identity } = useInternetIdentity();
 
   const formatCurrency = (value: bigint) => {
     return new Intl.NumberFormat('id-ID', {
@@ -61,25 +57,10 @@ export default function ProductsPage({ onNavigateDashboard }: ProductsPageProps)
           <p className="text-muted-foreground">Memuat produk...</p>
         </div>
       ) : error ? (
-        (() => {
-          const normalizedError = normalizeErrorMessage(error);
-          
-          if (normalizedError.isAuthError && !identity) {
-            return (
-              <SignInRequiredState
-                title="Sign In to View Products"
-                description="You need to sign in with Internet Identity to view and manage products."
-              />
-            );
-          }
-
-          return (
-            <QueryErrorState
-              error={error}
-              onRetry={handleRetry}
-            />
-          );
-        })()
+        <QueryErrorState
+          error={error}
+          onRetry={handleRetry}
+        />
       ) : !products || products.length === 0 ? (
         <div className="border border-border rounded-lg p-12 text-center">
           <Package className="h-12 w-12 mx-auto text-muted-foreground mb-4" />

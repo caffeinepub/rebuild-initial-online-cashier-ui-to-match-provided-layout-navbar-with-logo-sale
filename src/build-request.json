@@ -1,54 +1,92 @@
 {
   "kind": "build_request",
-  "title": "Fix product name dropdown to show 5 visible items with scroll and use provided product list",
+  "title": "Remove Internet Identity requirement and switch app to a single shared global dataset",
   "projectName": "Product Catalog",
   "priority": "normal",
   "requirements": [
     {
       "id": "REQ-1",
-      "text": "Update the static product name options to exactly match the 13 product names provided in chat, and expose them from the existing frontend constants module.",
-      "target": "frontend",
+      "text": "Update the backend authorization model so that all core data (products, inventory, sales/transactions, reports, cash transactions, and any other existing records) is readable and writable by any caller without requiring Internet Identity login or role-based permissions (i.e., no admin/user gating).",
+      "target": "backend",
       "source": {
         "messageIds": [
-          "msg-user-products-list"
+          "msg-1"
         ],
         "quotes": [
-          "1. Es Teh Ori Kecil 2. Es Teh Ori Besar 3. Kopi Aren Ori Kecil 4. Kopi Aren Ori Besar 5. Creamy Latte Kecil 6. Creamy Latte Besar 7. Matcha Latte Kecil 8. Choco Melt Kecil 9. Lemon Tea Kecil 10. Lemon Tea Besar 11. Lemon Fresh Kecil 12. Lemon Fresh Besar 13. Es Batu Cup Besar"
+          "I want all users (any device) to see the exact same data without login / Internet Identity.",
+          "1. ya benar 2. Ya 3. versi web standar."
         ]
       },
       "acceptanceCriteria": [
-        "`frontend/src/constants/productOptions.ts` exports a `PRODUCT_NAMES` list containing exactly these 13 strings (spelling/casing must match chat exactly): Es Teh Ori Kecil; Es Teh Ori Besar; Kopi Aren Ori Kecil; Kopi Aren Ori Besar; Creamy Latte Kecil; Creamy Latte Besar; Matcha Latte Kecil; Choco Melt Kecil; Lemon Tea Kecil; Lemon Tea Besar; Lemon Fresh Kecil; Lemon Fresh Besar; Es Batu Cup Besar",
-        "No extra legacy product names remain in `PRODUCT_NAMES` (e.g., remove items not present in the 13-name list)."
+        "All backend methods that currently trap with \"Unauthorized\" for missing permissions can be called successfully by an anonymous caller.",
+        "CRUD operations for products, inventory, recording sales, updating/deleting sales, dashboard summary, and report queries work without Internet Identity.",
+        "Backend no longer requires any secret/admin token initialization to allow normal app usage."
       ]
     },
     {
       "id": "REQ-2",
-      "text": "In the “Add New Product” modal, make the Product Name dropdown use the provided chat product list, and ensure the dropdown shows approximately 5 items at a time with vertical scrolling enabled for the remaining items (not limited to ~3 visible items).",
+      "text": "Switch all frontend data access to use an anonymous actor only (no authenticated actor flow) by migrating all hooks that currently depend on `useActor()` to use `usePublicActor()` (or a new non-immutable equivalent), so the app functions fully without any Internet Identity login.",
       "target": "frontend",
       "source": {
         "messageIds": [
-          "msg-user-scroll-request",
-          "msg-user-products-list"
+          "msg-1"
         ],
         "quotes": [
-          "Saya mau, ukuran drop down cukup untuk 5 nama, nama produk yang lain dimunculkan dengan scroll up/dwon.",
-          "1. Es Teh Ori Kecil 2. Es Teh Ori Besar 3. Kopi Aren Ori Kecil 4. Kopi Aren Ori Besar 5. Creamy Latte Kecil 6. Creamy Latte Besar 7. Matcha Latte Kecil 8. Choco Melt Kecil 9. Lemon Tea Kecil 10. Lemon Tea Besar 11. Lemon Fresh Kecil 12. Lemon Fresh Besar 13. Es Batu Cup Besar"
+          "I want all users (any device) to see the exact same data without login / Internet Identity."
         ]
       },
       "acceptanceCriteria": [
-        "`frontend/src/components/ProductFormModal.tsx` imports and uses `PRODUCT_NAMES` to populate the Product Name `<Select>` options (the dropdown is not dependent on `useProducts()` returning previously-created products).",
-        "When the Product Name dropdown is opened, about 5 options are visible without scrolling, and the remaining options are accessible via mouse wheel/trackpad scroll inside the dropdown.",
-        "The dropdown is not visually truncated to ~3 visible items on common viewport sizes; it has a fixed max height (around 250px) and `overflow-y-auto` applied to the actual scroll container used by the select dropdown."
+        "`useDashboardSummary`, `useSalesReport`, `useInventory`, `useProducts`, `useRecordSale`, and `useSalesMutations` no longer import or call `useActor()` and instead use an anonymous actor source.",
+        "App loads and can list/add products, list/add/update inventory, record sales, and view reports while not logged in.",
+        "No frontend code path attempts to initialize access control via URL secret (e.g., `caffeineAdminToken`) as a prerequisite for normal operation."
+      ]
+    },
+    {
+      "id": "REQ-3",
+      "text": "Remove Internet Identity sign-in gating from UI pages by eliminating usage of `SignInRequiredState` and any \"sign in required\" conditional rendering, so pages show either the normal content, loading states, or non-auth error states.",
+      "target": "frontend",
+      "source": {
+        "messageIds": [
+          "msg-1"
+        ],
+        "quotes": [
+          "Saya mau tidak perlu ada cek identity... Supaya ... isinya sama ... di Handphone lain."
+        ]
+      },
+      "acceptanceCriteria": [
+        "Dashboard, Products, Inventory, Transactions, and Reports do not render any \"Sign In Required\" UI when the user is anonymous.",
+        "If a backend error occurs, the UI shows the standard error UI (e.g., `QueryErrorState`) and retry still works without requiring login."
+      ]
+    },
+    {
+      "id": "REQ-4",
+      "text": "Apply a single cohesive visual theme across the app (colors, typography, spacing, and component styling) appropriate for a lightweight shared internal tool; avoid blue/purple as primary colors and keep the theme consistent across all views and dialogs.",
+      "target": "frontend",
+      "source": {
+        "messageIds": [
+          "msg-1"
+        ],
+        "quotes": [
+          "versi web standar."
+        ]
+      },
+      "acceptanceCriteria": [
+        "A consistent non-blue/purple primary accent color is used across buttons/links/highlights.",
+        "Typography and spacing feel consistent across Dashboard, Products, Inventory, Transactions, and Reports.",
+        "No layout regressions: navigation and all existing screens remain usable on laptop and mobile web."
       ]
     }
   ],
   "constraints": [
-    "Do not modify any files under `frontend/src/components/ui` (shadcn UI components); implement fixes by composing/overriding via props/classes in app components instead.",
-    "Keep the backend as a single Motoko actor; no new backend canisters/services."
+    "Do not edit files under `frontend/src/components/ui` (read-only UI components must be composed, not modified).",
+    "Do not edit immutable frontend paths: `frontend/src/hooks/useInternetIdentity.ts`, `frontend/src/hooks/useInternetIdentity.tsx`, `frontend/src/hooks/useActor.ts`, `frontend/src/main.tsx`.",
+    "Backend must remain a single Motoko actor in `backend/main.mo`; only add `backend/migration.mo` if an upgrade requires state migration."
   ],
   "nonGoals": [
-    "Do not add a new UI/admin screen to manage product name lists dynamically.",
-    "Do not implement pagination, search, or async loading for the product name dropdown unless required to make scrolling work."
+    "Adding username/password authentication or any other auth provider.",
+    "Per-user data separation, roles, or permissions.",
+    "Real-time syncing features (e.g., WebSockets).",
+    "Implementing currently-disabled/placeholder menu items such as Attendance/Absensi and related reports unless already present."
   ],
   "imageRequirements": {
     "required": [],

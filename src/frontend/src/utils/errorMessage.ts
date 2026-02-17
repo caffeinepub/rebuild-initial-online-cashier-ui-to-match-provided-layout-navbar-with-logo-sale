@@ -1,6 +1,6 @@
 /**
  * Normalizes backend error messages into user-friendly English titles and messages.
- * Handles common error patterns including authentication-specific messaging.
+ * Handles common error patterns with generic service error messaging.
  */
 
 export interface NormalizedError {
@@ -12,21 +12,6 @@ export interface NormalizedError {
 export function normalizeErrorMessage(error: Error | unknown): NormalizedError {
   const errorMessage = error instanceof Error ? error.message : String(error);
   const lowerMessage = errorMessage.toLowerCase();
-
-  // Check for permission/authorization errors
-  if (
-    lowerMessage.includes('unauthorized') ||
-    lowerMessage.includes('only users can') ||
-    lowerMessage.includes('only admin can') ||
-    lowerMessage.includes('permission') ||
-    lowerMessage.includes('access denied')
-  ) {
-    return {
-      title: 'Authentication Required',
-      message: 'You need to sign in to access this feature.',
-      isAuthError: true,
-    };
-  }
 
   // Check for actor/connection errors
   if (
@@ -56,6 +41,21 @@ export function normalizeErrorMessage(error: Error | unknown): NormalizedError {
     return {
       title: 'Request Timeout',
       message: 'The request took too long to complete. Please try again.',
+      isAuthError: false,
+    };
+  }
+
+  // Check for permission/authorization errors - treat as generic service errors
+  if (
+    lowerMessage.includes('unauthorized') ||
+    lowerMessage.includes('only users can') ||
+    lowerMessage.includes('only admin can') ||
+    lowerMessage.includes('permission') ||
+    lowerMessage.includes('access denied')
+  ) {
+    return {
+      title: 'Service Error',
+      message: 'Unable to complete the request. Please try again or contact support.',
       isAuthError: false,
     };
   }
