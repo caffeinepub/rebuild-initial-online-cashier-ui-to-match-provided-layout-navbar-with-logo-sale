@@ -1,9 +1,9 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { usePublicActor } from './usePublicActor';
+import { useActor } from './useActor';
 import type { SaleItem, PaymentMethod } from '../backend';
 
 export function useRecordSale() {
-  const { actor } = usePublicActor();
+  const { actor } = useActor();
   const queryClient = useQueryClient();
 
   return useMutation({

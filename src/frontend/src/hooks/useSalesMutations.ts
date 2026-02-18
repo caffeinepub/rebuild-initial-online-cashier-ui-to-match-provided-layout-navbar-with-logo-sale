@@ -1,5 +1,5 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { usePublicActor } from './usePublicActor';
+import { useActor } from './useActor';
 import type { SaleItem, PaymentMethod } from '../backend';
 
 interface UpdateSaleParams {
@@ -10,7 +10,7 @@ interface UpdateSaleParams {
 }
 
 export function useUpdateSale() {
-  const { actor } = usePublicActor();
+  const { actor } = useActor();
   const queryClient = useQueryClient();
 
   return useMutation({
@@ -28,7 +28,7 @@ export function useUpdateSale() {
 }
 
 export function useDeleteSale() {
-  const { actor } = usePublicActor();
+  const { actor } = useActor();
   const queryClient = useQueryClient();
 
   return useMutation({

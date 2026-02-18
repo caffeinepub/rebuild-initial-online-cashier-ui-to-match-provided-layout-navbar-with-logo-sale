@@ -1,35 +1,72 @@
 {
   "kind": "build_request",
-  "title": "Make the reminder (low-stock warning) background lighter and brighter",
-  "projectName": "Sales Inventory Dashboard",
-  "priority": "normal",
+  "title": "Fix global 'Service Error' by using authenticated actor and improving auth error handling",
+  "projectName": "Expense Tracking",
+  "priority": "high",
   "requirements": [
     {
       "id": "REQ-1",
-      "text": "Update the reminder/low-stock warning background color to be lighter and brighter than the current design by adjusting the low-stock theme tokens used for the banner and low-stock table-row highlights.",
+      "text": "Stop using the anonymous (public) actor for protected backend calls and instead use the authenticated actor for all menu pages that read/write data (Dashboard, Products, Inventory, Transactions, Expenses, and all Reports), so backend permission checks no longer trap and users can load/save data normally.",
       "target": "frontend",
       "source": {
         "messageIds": [
-          "msg-4"
+          "msg-1"
         ],
         "quotes": [
-          "1.. Warna backgound  2. lebih cerah dari yang sekarang 3. lebih light"
+          "semua menu, tidak bisa keluarkan data. Keluar pesan: Service Error Unable to complete the request. Please try again or contact support.. Tolong perbaiki agar normal"
         ]
       },
       "acceptanceCriteria": [
-        "On the Dashboard, the low-stock reminder banner background appears visibly lighter/brighter than before.",
-        "Low-stock highlighted rows (e.g., the Dashboard inventory table and the low-stock banner table rows) use the updated lighter/brighter background consistently.",
-        "Text and icons on top of the updated background remain readable with sufficient contrast in both light mode and dark mode."
+        "When signed in with Internet Identity, each page (Dashboard, Products, Inventory, Transactions, Expenses, Sales Report, Inventory Report, Expense Report) successfully loads data instead of showing a generic 'Service Error'.",
+        "Mutations (e.g., add expense, record sale, adjust stock, add inventory/product) complete successfully for a user with the required role, and relevant React Query caches are invalidated/refetched as before.",
+        "No data-fetching hooks for protected methods rely on the anonymous actor path (usePublicActor) anymore."
+      ]
+    },
+    {
+      "id": "REQ-2",
+      "text": "Add explicit UI handling for authorization failures: detect backend 'Unauthorized'/'Only users can...'/'Only admins can...' errors, classify them as authentication/authorization errors, and show a clear English message prompting the user to sign in (and/or indicating insufficient permissions) instead of the generic 'Service Error' message.",
+      "target": "frontend",
+      "source": {
+        "messageIds": [
+          "msg-1"
+        ],
+        "quotes": [
+          "Service Error Unable to complete the request. Please try again or contact support."
+        ]
+      },
+      "acceptanceCriteria": [
+        "Authorization-related backend errors are normalized to an auth/permission-specific error state (not a generic 'Service Error').",
+        "When the user is signed out and attempts to access a protected page, the UI displays a sign-in required state (or equivalent) rather than repeated retries ending in 'Service Error'.",
+        "When the user is signed in but lacks the required role (e.g., admin-only actions), the UI shows an English 'Insufficient permissions' style message and does not mislabel it as a service outage."
+      ]
+    },
+    {
+      "id": "REQ-3",
+      "text": "Ensure the app can recover from transient actor initialization issues by providing a reliable retry path: retry should recreate/refetch the actor and then refetch the failed query/mutation, so users can resolve temporary 'Actor not available/Service not ready' states without a full page refresh.",
+      "target": "frontend",
+      "source": {
+        "messageIds": [
+          "msg-2"
+        ],
+        "quotes": [
+          "ulangi"
+        ]
+      },
+      "acceptanceCriteria": [
+        "If the actor is temporarily unavailable, pressing Retry in the error UI results in the actor being refetched/recreated and the failing query being re-run.",
+        "After Retry, pages that previously showed connection/actor errors can successfully load data when the backend is reachable."
       ]
     }
   ],
   "constraints": [
-    "Do not modify any files under frontend/src/components/ui (read-only shadcn components).",
-    "Keep all user-facing text in English (do not introduce new non-English labels while making this styling change)."
+    "Do not edit any files under frontend/src/components/ui (read-only UI components).",
+    "Do not modify immutable frontend paths: frontend/src/hooks/useInternetIdentity.ts, frontend/src/hooks/useInternetIdentity.tsx, frontend/src/hooks/useActor.ts, frontend/src/main.tsx.",
+    "Backend must remain a single Motoko actor in backend/main.mo; only add a migration file if a stable-state schema change is required."
   ],
   "nonGoals": [
-    "No changes to low-stock detection logic, inventory thresholds, or any backend behavior.",
-    "No layout or copy changes to the reminder/low-stock banner beyond background color styling."
+    "Adding new product/features beyond fixing the inability to load/save/export/display existing data.",
+    "Changing the authorization model/roles beyond what is necessary to prevent generic service errors and enable normal signed-in usage.",
+    "Adding third-party authentication providers (only Internet Identity is supported)."
   ],
   "imageRequirements": {
     "required": [],

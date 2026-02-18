@@ -1,95 +1,105 @@
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent } from '@/components/ui/card';
-import { Plus, Loader2, ShoppingCart, ImageIcon } from 'lucide-react';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { Plus, Trash2, ShoppingCart, Loader2, Package } from 'lucide-react';
 import { useProducts } from '../hooks/useProducts';
 import { useRecordSale } from '../hooks/useRecordSale';
 import QuantityPromptModal from './QuantityPromptModal';
+import type { Product, PaymentMethod, SaleItem } from '../backend';
+import { toast } from 'sonner';
 import QueryErrorState from './QueryErrorState';
 import { useInvalidateActorQueries } from '../hooks/useInvalidateActorQueries';
-import type { Product, SaleItem, PaymentMethod } from '../backend';
-import { toast } from 'sonner';
+import { useInternetIdentity } from '../hooks/useInternetIdentity';
+import SignInRequiredState from './SignInRequiredState';
+
+interface CartItem {
+  product: Product;
+  quantity: number;
+}
 
 export default function TransactionPage() {
+  const { identity } = useInternetIdentity();
+  const isAuthenticated = !!identity;
+  
+  const [cart, setCart] = useState<CartItem[]>([]);
+  const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
+  const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>('tunai' as PaymentMethod);
+
   const { data: products, isLoading, error, refetch } = useProducts();
   const recordSale = useRecordSale();
   const { invalidateActorQueries } = useInvalidateActorQueries();
 
-  const [cart, setCart] = useState<Map<string, { product: Product; quantity: number }>>(new Map());
-  const [quantityModal, setQuantityModal] = useState<{ open: boolean; product: Product | null }>({
-    open: false,
-    product: null,
-  });
-  const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>('tunai' as PaymentMethod);
+  const formatCurrency = (value: bigint | number) => {
+    const numValue = typeof value === 'bigint' ? Number(value) : value;
+    return new Intl.NumberFormat('id-ID', {
+      style: 'currency',
+      currency: 'IDR',
+      minimumFractionDigits: 0,
+    }).format(numValue);
+  };
 
   const handleAddToCart = (product: Product) => {
-    setQuantityModal({ open: true, product });
+    setSelectedProduct(product);
   };
 
   const handleConfirmQuantity = (quantity: number) => {
-    if (quantityModal.product) {
-      const productId = quantityModal.product.id.toString();
-      const existing = cart.get(productId);
+    if (!selectedProduct) return;
 
-      if (existing) {
-        setCart(
-          new Map(
-            cart.set(productId, {
-              product: quantityModal.product,
-              quantity: existing.quantity + quantity,
-            })
-          )
-        );
-      } else {
-        setCart(new Map(cart.set(productId, { product: quantityModal.product, quantity })));
-      }
-
-      setQuantityModal({ open: false, product: null });
+    const existingItem = cart.find((item) => item.product.id === selectedProduct.id);
+    if (existingItem) {
+      setCart(
+        cart.map((item) =>
+          item.product.id === selectedProduct.id
+            ? { ...item, quantity: item.quantity + quantity }
+            : item
+        )
+      );
+    } else {
+      setCart([...cart, { product: selectedProduct, quantity }]);
     }
+
+    setSelectedProduct(null);
   };
 
-  const handleRemoveFromCart = (productId: string) => {
-    const newCart = new Map(cart);
-    newCart.delete(productId);
-    setCart(newCart);
+  const handleRemoveFromCart = (productId: bigint) => {
+    setCart(cart.filter((item) => item.product.id !== productId));
   };
 
   const calculateTotal = () => {
-    let total = 0;
-    cart.forEach(({ product, quantity }) => {
-      total += Number(product.salePrice) * quantity;
-    });
-    return total;
+    return cart.reduce((sum, item) => sum + Number(item.product.salePrice) * item.quantity, 0);
   };
 
   const handleCheckout = async () => {
-    if (cart.size === 0) {
+    if (cart.length === 0) {
       toast.error('Keranjang kosong', {
         description: 'Tambahkan produk ke keranjang terlebih dahulu.',
       });
       return;
     }
 
-    const items: SaleItem[] = Array.from(cart.values()).map(({ product, quantity }) => ({
-      productId: product.id,
-      quantity: BigInt(quantity),
-      unitPrice: product.salePrice,
-      cogs: product.hpp,
-      productName: product.name,
+    const saleItems: SaleItem[] = cart.map((item) => ({
+      productId: item.product.id,
+      quantity: BigInt(item.quantity),
+      unitPrice: item.product.salePrice,
+      cogs: item.product.hpp,
+      productName: item.product.name,
     }));
 
     try {
       await recordSale.mutateAsync({
-        items,
+        items: saleItems,
         paymentMethod,
         totalTax: BigInt(0),
       });
 
-      toast.success('Transaksi berhasil!', {
+      toast.success('Transaksi berhasil', {
         description: 'Penjualan telah dicatat.',
       });
 
-      setCart(new Map());
+      setCart([]);
+      setPaymentMethod('tunai' as PaymentMethod);
     } catch (err) {
       toast.error('Transaksi gagal', {
         description: err instanceof Error ? err.message : 'Terjadi kesalahan saat mencatat penjualan.',
@@ -97,175 +107,190 @@ export default function TransactionPage() {
     }
   };
 
-  const formatCurrency = (value: number) => {
-    return new Intl.NumberFormat('id-ID', {
-      style: 'currency',
-      currency: 'IDR',
-      minimumFractionDigits: 0,
-    }).format(value);
-  };
-
   const handleRetry = async () => {
     await invalidateActorQueries();
     await refetch();
   };
 
+  // Show sign-in required if not authenticated
+  if (!isAuthenticated) {
+    return (
+      <div className="space-y-6">
+        <div>
+          <h1 className="text-3xl font-bold text-foreground">Transaksi</h1>
+          <p className="text-muted-foreground mt-1">Catat penjualan produk Anda</p>
+        </div>
+        <SignInRequiredState />
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-6">
       <div>
         <h1 className="text-3xl font-bold text-foreground">Transaksi</h1>
-        <p className="text-muted-foreground mt-1">Catat penjualan dan kelola transaksi</p>
+        <p className="text-muted-foreground mt-1">Catat penjualan produk Anda</p>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Products List */}
-        <div className="lg:col-span-2 space-y-4">
-          <h2 className="text-xl font-semibold">Pilih Produk</h2>
-
-          {isLoading ? (
-            <div className="border border-border rounded-lg p-12 text-center">
-              <Loader2 className="h-8 w-8 animate-spin mx-auto text-primary mb-4" />
-              <p className="text-muted-foreground">Memuat produk...</p>
-            </div>
-          ) : error ? (
-            <QueryErrorState error={error} onRetry={handleRetry} />
-          ) : !products || products.length === 0 ? (
-            <div className="border border-border rounded-lg p-12 text-center">
-              <ShoppingCart className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
-              <p className="text-muted-foreground">Belum ada produk tersedia</p>
-            </div>
-          ) : (
-            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
-              {products.map((product) => (
-                <Card
-                  key={product.id.toString()}
-                  className="cursor-pointer hover:shadow-lg transition-shadow"
-                  onClick={() => handleAddToCart(product)}
-                >
-                  <CardContent className="p-3">
-                    <div className="aspect-square bg-muted rounded-md mb-2 overflow-hidden">
-                      {product.image && product.image.getDirectURL ? (
-                        <img
-                          src={product.image.getDirectURL()}
-                          alt={product.name}
-                          className="w-full h-full object-cover"
-                        />
-                      ) : (
-                        <div className="w-full h-full flex items-center justify-center">
-                          <ImageIcon className="h-8 w-8 text-muted-foreground" />
-                        </div>
-                      )}
+      <div className="grid gap-6 lg:grid-cols-2">
+        {/* Product Selection */}
+        <Card>
+          <CardHeader>
+            <CardTitle>Pilih Produk</CardTitle>
+          </CardHeader>
+          <CardContent>
+            {isLoading ? (
+              <div className="flex items-center justify-center py-8">
+                <Loader2 className="h-6 w-6 animate-spin text-primary" />
+              </div>
+            ) : error ? (
+              <QueryErrorState
+                error={error}
+                onRetry={handleRetry}
+              />
+            ) : !products || products.length === 0 ? (
+              <div className="text-center py-8">
+                <Package className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
+                <p className="text-muted-foreground">Belum ada produk tersedia</p>
+              </div>
+            ) : (
+              <div className="grid gap-3 max-h-[500px] overflow-y-auto">
+                {products.map((product) => (
+                  <div
+                    key={product.id.toString()}
+                    className="flex items-center justify-between p-3 border border-border rounded-lg hover:bg-accent transition-colors"
+                  >
+                    <div className="flex-1">
+                      <h3 className="font-medium">{product.name}</h3>
+                      <p className="text-sm text-muted-foreground">
+                        {product.size} • {formatCurrency(product.salePrice)}
+                      </p>
                     </div>
-                    <h3 className="font-medium text-sm line-clamp-2 mb-1">{product.name}</h3>
-                    <p className="text-xs text-muted-foreground mb-1">Ukuran: {product.size}</p>
-                    <p className="text-sm font-bold text-primary">{formatCurrency(Number(product.salePrice))}</p>
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
-          )}
-        </div>
-
-        {/* Cart */}
-        <div className="space-y-4">
-          <h2 className="text-xl font-semibold">Keranjang</h2>
-
-          <Card>
-            <CardContent className="p-4 space-y-4">
-              {cart.size === 0 ? (
-                <div className="text-center py-8 text-muted-foreground">
-                  <ShoppingCart className="h-12 w-12 mx-auto mb-2 opacity-50" />
-                  <p>Keranjang kosong</p>
-                </div>
-              ) : (
-                <>
-                  <div className="space-y-3 max-h-[400px] overflow-y-auto">
-                    {Array.from(cart.values()).map(({ product, quantity }) => (
-                      <div key={product.id.toString()} className="flex items-center gap-3 pb-3 border-b">
-                        <div className="w-12 h-12 bg-muted rounded overflow-hidden flex-shrink-0">
-                          {product.image && product.image.getDirectURL ? (
-                            <img
-                              src={product.image.getDirectURL()}
-                              alt={product.name}
-                              className="w-full h-full object-cover"
-                            />
-                          ) : (
-                            <div className="w-full h-full flex items-center justify-center">
-                              <ImageIcon className="h-4 w-4 text-muted-foreground" />
-                            </div>
-                          )}
-                        </div>
-                        <div className="flex-1 min-w-0">
-                          <p className="font-medium text-sm line-clamp-1">{product.name}</p>
-                          <p className="text-xs text-muted-foreground">
-                            {quantity} x {formatCurrency(Number(product.salePrice))}
-                          </p>
-                        </div>
-                        <div className="flex flex-col items-end gap-1">
-                          <p className="font-semibold text-sm">
-                            {formatCurrency(Number(product.salePrice) * quantity)}
-                          </p>
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            className="h-6 text-xs text-destructive hover:text-destructive"
-                            onClick={() => handleRemoveFromCart(product.id.toString())}
-                          >
-                            Hapus
-                          </Button>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-
-                  <div className="space-y-3 pt-3 border-t">
-                    <div>
-                      <label className="text-sm font-medium mb-2 block">Metode Pembayaran</label>
-                      <select
-                        value={paymentMethod}
-                        onChange={(e) => setPaymentMethod(e.target.value as PaymentMethod)}
-                        className="w-full px-3 py-2 border border-input rounded-md bg-background"
-                      >
-                        <option value="tunai">Tunai</option>
-                        <option value="dana">Dana</option>
-                        <option value="qris">QRIS</option>
-                        <option value="trf">Transfer</option>
-                      </select>
-                    </div>
-
-                    <div className="flex justify-between items-center text-lg font-bold pt-2">
-                      <span>Total:</span>
-                      <span className="text-primary">{formatCurrency(calculateTotal())}</span>
-                    </div>
-
                     <Button
-                      className="w-full"
-                      size="lg"
-                      onClick={handleCheckout}
-                      disabled={recordSale.isPending}
+                      size="sm"
+                      onClick={() => handleAddToCart(product)}
+                      className="gap-2"
                     >
-                      {recordSale.isPending ? (
-                        <>
-                          <Loader2 className="h-4 w-4 animate-spin mr-2" />
-                          Memproses...
-                        </>
-                      ) : (
-                        'Checkout'
-                      )}
+                      <Plus className="h-4 w-4" />
+                      Tambah
                     </Button>
                   </div>
-                </>
-              )}
-            </CardContent>
-          </Card>
-        </div>
+                ))}
+              </div>
+            )}
+          </CardContent>
+        </Card>
+
+        {/* Cart */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <ShoppingCart className="h-5 w-5" />
+              Keranjang
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            {cart.length === 0 ? (
+              <div className="text-center py-8 text-muted-foreground">
+                Keranjang kosong
+              </div>
+            ) : (
+              <>
+                <div className="border border-border rounded-lg overflow-hidden">
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>Produk</TableHead>
+                        <TableHead className="text-center">Qty</TableHead>
+                        <TableHead className="text-right">Subtotal</TableHead>
+                        <TableHead className="w-[50px]"></TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {cart.map((item) => (
+                        <TableRow key={item.product.id.toString()}>
+                          <TableCell>
+                            <div>
+                              <p className="font-medium">{item.product.name}</p>
+                              <p className="text-sm text-muted-foreground">
+                                {formatCurrency(item.product.salePrice)}
+                              </p>
+                            </div>
+                          </TableCell>
+                          <TableCell className="text-center">{item.quantity}</TableCell>
+                          <TableCell className="text-right font-semibold">
+                            {formatCurrency(Number(item.product.salePrice) * item.quantity)}
+                          </TableCell>
+                          <TableCell>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => handleRemoveFromCart(item.product.id)}
+                              className="h-8 w-8 p-0 text-destructive hover:text-destructive"
+                            >
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </div>
+
+                <div className="space-y-3">
+                  <div className="flex items-center justify-between text-lg font-semibold">
+                    <span>Total:</span>
+                    <span className="text-primary">{formatCurrency(calculateTotal())}</span>
+                  </div>
+
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium">Metode Pembayaran</label>
+                    <Select
+                      value={paymentMethod}
+                      onValueChange={(value) => setPaymentMethod(value as PaymentMethod)}
+                    >
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="tunai">Tunai</SelectItem>
+                        <SelectItem value="dana">Dana</SelectItem>
+                        <SelectItem value="qris">QRIS</SelectItem>
+                        <SelectItem value="trf">Transfer</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  <Button
+                    onClick={handleCheckout}
+                    disabled={recordSale.isPending}
+                    className="w-full gap-2"
+                    size="lg"
+                  >
+                    {recordSale.isPending ? (
+                      <>
+                        <Loader2 className="h-4 w-4 animate-spin" />
+                        Memproses...
+                      </>
+                    ) : (
+                      <>
+                        <ShoppingCart className="h-4 w-4" />
+                        Checkout
+                      </>
+                    )}
+                  </Button>
+                </div>
+              </>
+            )}
+          </CardContent>
+        </Card>
       </div>
 
-      {quantityModal.product && (
+      {selectedProduct && (
         <QuantityPromptModal
-          open={quantityModal.open}
-          onOpenChange={(open) => setQuantityModal({ ...quantityModal, open })}
-          product={quantityModal.product}
+          open={!!selectedProduct}
+          onOpenChange={(open) => !open && setSelectedProduct(null)}
+          product={selectedProduct}
           onConfirm={handleConfirmQuantity}
         />
       )}

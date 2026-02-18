@@ -48,6 +48,19 @@ export const CashTransaction = IDL.Record({
   'timestamp' : Time,
   'amount' : IDL.Nat,
 });
+export const UserProfile = IDL.Record({ 'name' : IDL.Text });
+export const ExpenseRecord = IDL.Record({
+  'id' : IDL.Nat,
+  'total' : IDL.Nat,
+  'nominalAmount' : IDL.Nat,
+  'date' : IDL.Text,
+  'item' : IDL.Text,
+  'createdAt' : Time,
+  'picName' : IDL.Text,
+  'quantity' : IDL.Int,
+  'category' : IDL.Text,
+  'monthYear' : IDL.Text,
+});
 export const InventoryReportEntry = IDL.Record({
   'description' : IDL.Text,
   'timestamp' : Time,
@@ -131,6 +144,20 @@ export const idlService = IDL.Service({
       [IDL.Nat],
       [],
     ),
+  'addExpenseRecord' : IDL.Func(
+      [
+        IDL.Text,
+        IDL.Text,
+        IDL.Text,
+        IDL.Text,
+        IDL.Nat,
+        IDL.Int,
+        IDL.Nat,
+        IDL.Text,
+      ],
+      [IDL.Nat],
+      [],
+    ),
   'addInventoryItem' : IDL.Func(
       [
         IDL.Text,
@@ -164,6 +191,7 @@ export const idlService = IDL.Service({
       [IDL.Vec(CashTransaction)],
       ['query'],
     ),
+  'getCallerUserProfile' : IDL.Func([], [IDL.Opt(UserProfile)], ['query']),
   'getCallerUserRole' : IDL.Func([], [UserRole], ['query']),
   'getCashBalance' : IDL.Func([], [IDL.Nat], ['query']),
   'getCashTransactionsByDate' : IDL.Func(
@@ -171,6 +199,7 @@ export const idlService = IDL.Service({
       [IDL.Vec(CashTransaction)],
       ['query'],
     ),
+  'getExpenseRecords' : IDL.Func([], [IDL.Vec(ExpenseRecord)], ['query']),
   'getInventoryReports' : IDL.Func(
       [IDL.Opt(IDL.Text), IDL.Opt(IDL.Nat)],
       [IDL.Vec(InventoryReportEntry)],
@@ -180,6 +209,11 @@ export const idlService = IDL.Service({
       [IDL.Opt(IDL.Text), IDL.Opt(IDL.Text), IDL.Opt(Time), IDL.Opt(Time)],
       [IDL.Nat],
       [],
+    ),
+  'getUserProfile' : IDL.Func(
+      [IDL.Principal],
+      [IDL.Opt(UserProfile)],
+      ['query'],
     ),
   'isCallerAdmin' : IDL.Func([], [IDL.Bool], ['query']),
   'isInventoryLow' : IDL.Func([], [IDL.Bool], ['query']),
@@ -191,6 +225,7 @@ export const idlService = IDL.Service({
       [IDL.Nat],
       [],
     ),
+  'saveCallerUserProfile' : IDL.Func([UserProfile], [], []),
   'updateCashTransaction' : IDL.Func(
       [IDL.Nat, IDL.Nat, TransactionType, IDL.Text],
       [IDL.Bool],
@@ -260,6 +295,19 @@ export const idlFactory = ({ IDL }) => {
     'description' : IDL.Text,
     'timestamp' : Time,
     'amount' : IDL.Nat,
+  });
+  const UserProfile = IDL.Record({ 'name' : IDL.Text });
+  const ExpenseRecord = IDL.Record({
+    'id' : IDL.Nat,
+    'total' : IDL.Nat,
+    'nominalAmount' : IDL.Nat,
+    'date' : IDL.Text,
+    'item' : IDL.Text,
+    'createdAt' : Time,
+    'picName' : IDL.Text,
+    'quantity' : IDL.Int,
+    'category' : IDL.Text,
+    'monthYear' : IDL.Text,
   });
   const InventoryReportEntry = IDL.Record({
     'description' : IDL.Text,
@@ -344,6 +392,20 @@ export const idlFactory = ({ IDL }) => {
         [IDL.Nat],
         [],
       ),
+    'addExpenseRecord' : IDL.Func(
+        [
+          IDL.Text,
+          IDL.Text,
+          IDL.Text,
+          IDL.Text,
+          IDL.Nat,
+          IDL.Int,
+          IDL.Nat,
+          IDL.Text,
+        ],
+        [IDL.Nat],
+        [],
+      ),
     'addInventoryItem' : IDL.Func(
         [
           IDL.Text,
@@ -377,6 +439,7 @@ export const idlFactory = ({ IDL }) => {
         [IDL.Vec(CashTransaction)],
         ['query'],
       ),
+    'getCallerUserProfile' : IDL.Func([], [IDL.Opt(UserProfile)], ['query']),
     'getCallerUserRole' : IDL.Func([], [UserRole], ['query']),
     'getCashBalance' : IDL.Func([], [IDL.Nat], ['query']),
     'getCashTransactionsByDate' : IDL.Func(
@@ -384,6 +447,7 @@ export const idlFactory = ({ IDL }) => {
         [IDL.Vec(CashTransaction)],
         ['query'],
       ),
+    'getExpenseRecords' : IDL.Func([], [IDL.Vec(ExpenseRecord)], ['query']),
     'getInventoryReports' : IDL.Func(
         [IDL.Opt(IDL.Text), IDL.Opt(IDL.Nat)],
         [IDL.Vec(InventoryReportEntry)],
@@ -393,6 +457,11 @@ export const idlFactory = ({ IDL }) => {
         [IDL.Opt(IDL.Text), IDL.Opt(IDL.Text), IDL.Opt(Time), IDL.Opt(Time)],
         [IDL.Nat],
         [],
+      ),
+    'getUserProfile' : IDL.Func(
+        [IDL.Principal],
+        [IDL.Opt(UserProfile)],
+        ['query'],
       ),
     'isCallerAdmin' : IDL.Func([], [IDL.Bool], ['query']),
     'isInventoryLow' : IDL.Func([], [IDL.Bool], ['query']),
@@ -404,6 +473,7 @@ export const idlFactory = ({ IDL }) => {
         [IDL.Nat],
         [],
       ),
+    'saveCallerUserProfile' : IDL.Func([UserProfile], [], []),
     'updateCashTransaction' : IDL.Func(
         [IDL.Nat, IDL.Nat, TransactionType, IDL.Text],
         [IDL.Bool],

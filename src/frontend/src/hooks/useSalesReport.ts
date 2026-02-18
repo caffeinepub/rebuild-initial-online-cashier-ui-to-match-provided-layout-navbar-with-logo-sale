@@ -1,9 +1,9 @@
 import { useQuery } from '@tanstack/react-query';
-import { usePublicActor } from './usePublicActor';
+import { useActor } from './useActor';
 import type { SaleRecord, Time } from '../backend';
 
 export function useSalesReport(fromTimestamp: Time, toTimestamp: Time) {
-  const { actor, isFetching: actorFetching } = usePublicActor();
+  const { actor, isFetching: actorFetching } = useActor();
 
   return useQuery<SaleRecord[]>({
     queryKey: ['salesReport', fromTimestamp.toString(), toTimestamp.toString()],
@@ -12,6 +12,6 @@ export function useSalesReport(fromTimestamp: Time, toTimestamp: Time) {
       return actor.querySales(fromTimestamp, toTimestamp);
     },
     enabled: !!actor && !actorFetching,
-    retry: 2,
+    retry: false,
   });
 }

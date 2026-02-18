@@ -7,9 +7,11 @@ import InventoryPage from './components/InventoryPage';
 import TransactionPage from './components/TransactionPage';
 import SalesReportPage from './components/SalesReportPage';
 import InventoryReportPage from './components/InventoryReportPage';
+import ExpensesPage from './components/ExpensesPage';
+import ExpenseReportPage from './components/ExpenseReportPage';
 import { Heart } from 'lucide-react';
 
-type View = 'dashboard' | 'products' | 'inventory' | 'transactions' | 'salesReport' | 'inventoryReport';
+type View = 'dashboard' | 'products' | 'inventory' | 'transactions' | 'expenses' | 'salesReport' | 'inventoryReport' | 'expenseReport';
 
 const queryClient = new QueryClient();
 
@@ -27,8 +29,10 @@ function App() {
           )}
           {currentView === 'inventory' && <InventoryPage />}
           {currentView === 'transactions' && <TransactionPage />}
+          {currentView === 'expenses' && <ExpensesPage />}
           {currentView === 'salesReport' && <SalesReportPage />}
           {currentView === 'inventoryReport' && <InventoryReportPage />}
+          {currentView === 'expenseReport' && <ExpenseReportPage />}
         </main>
         <footer className="border-t border-border mt-16 py-6">
           <div className="container mx-auto px-4 text-center text-sm text-muted-foreground">

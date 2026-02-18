@@ -22,6 +22,18 @@ export interface DashboardSummary {
   'todayRevenue' : bigint,
   'totalQuantitySold' : bigint,
 }
+export interface ExpenseRecord {
+  'id' : bigint,
+  'total' : bigint,
+  'nominalAmount' : bigint,
+  'date' : string,
+  'item' : string,
+  'createdAt' : Time,
+  'picName' : string,
+  'quantity' : bigint,
+  'category' : string,
+  'monthYear' : string,
+}
 export type ExternalBlob = Uint8Array;
 export interface InventoryItem {
   'id' : bigint,
@@ -79,6 +91,7 @@ export interface SaleRecord {
 export type Time = bigint;
 export type TransactionType = { 'expense' : null } |
   { 'income' : null };
+export interface UserProfile { 'name' : string }
 export type UserRole = { 'admin' : null } |
   { 'user' : null } |
   { 'guest' : null };
@@ -111,6 +124,10 @@ export interface _SERVICE {
   '_caffeineStorageUpdateGatewayPrincipals' : ActorMethod<[], undefined>,
   '_initializeAccessControlWithSecret' : ActorMethod<[string], undefined>,
   'addCashTransaction' : ActorMethod<[bigint, TransactionType, string], bigint>,
+  'addExpenseRecord' : ActorMethod<
+    [string, string, string, string, bigint, bigint, bigint, string],
+    bigint
+  >,
   'addInventoryItem' : ActorMethod<
     [string, string, string, string, bigint, bigint, bigint, bigint],
     [] | [bigint]
@@ -128,12 +145,14 @@ export interface _SERVICE {
   'deleteSale' : ActorMethod<[bigint], boolean>,
   'fetchDashboardSummary' : ActorMethod<[], DashboardSummary>,
   'getAllCashTransactions' : ActorMethod<[], Array<CashTransaction>>,
+  'getCallerUserProfile' : ActorMethod<[], [] | [UserProfile]>,
   'getCallerUserRole' : ActorMethod<[], UserRole>,
   'getCashBalance' : ActorMethod<[], bigint>,
   'getCashTransactionsByDate' : ActorMethod<
     [Time, Time],
     Array<CashTransaction>
   >,
+  'getExpenseRecords' : ActorMethod<[], Array<ExpenseRecord>>,
   'getInventoryReports' : ActorMethod<
     [[] | [string], [] | [bigint]],
     Array<InventoryReportEntry>
@@ -142,12 +161,14 @@ export interface _SERVICE {
     [[] | [string], [] | [string], [] | [Time], [] | [Time]],
     bigint
   >,
+  'getUserProfile' : ActorMethod<[Principal], [] | [UserProfile]>,
   'isCallerAdmin' : ActorMethod<[], boolean>,
   'isInventoryLow' : ActorMethod<[], boolean>,
   'listInventoryItems' : ActorMethod<[], Array<InventoryItem>>,
   'listProducts' : ActorMethod<[], Array<Product>>,
   'querySales' : ActorMethod<[Time, Time], Array<SaleRecord>>,
   'recordSale' : ActorMethod<[Array<SaleItem>, PaymentMethod, bigint], bigint>,
+  'saveCallerUserProfile' : ActorMethod<[UserProfile], undefined>,
   'updateCashTransaction' : ActorMethod<
     [bigint, bigint, TransactionType, string],
     boolean

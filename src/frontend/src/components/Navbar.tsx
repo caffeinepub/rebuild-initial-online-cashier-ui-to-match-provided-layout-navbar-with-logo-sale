@@ -1,4 +1,4 @@
-import { Package, FileText, Receipt, FileBarChart, UserCheck, ChevronDown, LayoutDashboard } from 'lucide-react';
+import { Package, FileText, Receipt, FileBarChart, UserCheck, ChevronDown, LayoutDashboard, DollarSign } from 'lucide-react';
 import { useState } from 'react';
 import {
   DropdownMenu,
@@ -7,7 +7,7 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 
-type View = 'dashboard' | 'products' | 'inventory' | 'transactions' | 'salesReport' | 'inventoryReport';
+type View = 'dashboard' | 'products' | 'inventory' | 'transactions' | 'expenses' | 'salesReport' | 'inventoryReport' | 'expenseReport';
 
 interface NavbarProps {
   currentView: View;
@@ -19,6 +19,7 @@ const menuItems = [
   { id: 'produk', label: 'Produk', icon: Package, view: 'products' as View },
   { id: 'inventori', label: 'Inventori', icon: FileText, view: 'inventory' as View },
   { id: 'transaksi', label: 'Transaksi', icon: Receipt, view: 'transactions' as View },
+  { id: 'pengeluaran', label: 'Pengeluaran', icon: DollarSign, view: 'expenses' as View },
   { id: 'laporan', label: 'Laporan', icon: FileBarChart, view: null },
   { id: 'absensi', label: 'Absensi', icon: UserCheck, view: null },
 ];
@@ -26,7 +27,7 @@ const menuItems = [
 const laporanSubmenuItems = [
   { id: 'laporan-penjualan', label: 'Laporan Penjualan', view: 'salesReport' as View },
   { id: 'laporan-inventori', label: 'Laporan Inventori', view: 'inventoryReport' as View },
-  { id: 'laporan-pengeluaran', label: 'Laporan Pengeluaran', view: null },
+  { id: 'laporan-pengeluaran', label: 'Laporan Pengeluaran', view: 'expenseReport' as View },
   { id: 'laporan-absensi', label: 'Laporan Absensi', view: null },
 ];
 

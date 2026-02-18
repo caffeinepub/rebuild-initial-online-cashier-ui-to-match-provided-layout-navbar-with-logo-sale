@@ -1,9 +1,9 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { usePublicActor } from './usePublicActor';
+import { useActor } from './useActor';
 import type { Product, ExternalBlob } from '../backend';
 
 export function useProducts() {
-  const { actor, isFetching: actorFetching } = usePublicActor();
+  const { actor, isFetching: actorFetching } = useActor();
 
   return useQuery<Product[]>({
     queryKey: ['products'],
@@ -12,12 +12,12 @@ export function useProducts() {
       return actor.listProducts();
     },
     enabled: !!actor && !actorFetching,
-    retry: 2,
+    retry: false,
   });
 }
 
 export function useAddProduct() {
-  const { actor } = usePublicActor();
+  const { actor } = useActor();
   const queryClient = useQueryClient();
 
   return useMutation({

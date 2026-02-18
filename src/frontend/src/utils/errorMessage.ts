@@ -1,6 +1,6 @@
 /**
  * Normalizes backend error messages into user-friendly English titles and messages.
- * Handles common error patterns with generic service error messaging.
+ * Handles common error patterns including authentication and authorization errors.
  */
 
 export interface NormalizedError {
@@ -13,12 +13,32 @@ export function normalizeErrorMessage(error: Error | unknown): NormalizedError {
   const errorMessage = error instanceof Error ? error.message : String(error);
   const lowerMessage = errorMessage.toLowerCase();
 
+  // Check for authorization/authentication errors
+  if (
+    lowerMessage.includes('unauthorized') ||
+    lowerMessage.includes('only users can') ||
+    lowerMessage.includes('only admins can') ||
+    errorMessage.includes('Unauthorized:')
+  ) {
+    // Determine if it's a sign-in issue or permission issue
+    const isSignInRequired = 
+      lowerMessage.includes('only users can') ||
+      lowerMessage.includes('only admins can');
+    
+    return {
+      title: isSignInRequired ? 'Sign In Required' : 'Insufficient Permissions',
+      message: isSignInRequired 
+        ? 'You need to sign in to access this feature.'
+        : 'You do not have permission to perform this action.',
+      isAuthError: true,
+    };
+  }
+
   // Check for actor/connection errors
   if (
     lowerMessage.includes('actor not available') ||
     lowerMessage.includes('actor not initialized') ||
-    lowerMessage.includes('service not ready') ||
-    lowerMessage.includes('connection')
+    lowerMessage.includes('service not ready')
   ) {
     return {
       title: 'Connection Error',
@@ -41,21 +61,6 @@ export function normalizeErrorMessage(error: Error | unknown): NormalizedError {
     return {
       title: 'Request Timeout',
       message: 'The request took too long to complete. Please try again.',
-      isAuthError: false,
-    };
-  }
-
-  // Check for permission/authorization errors - treat as generic service errors
-  if (
-    lowerMessage.includes('unauthorized') ||
-    lowerMessage.includes('only users can') ||
-    lowerMessage.includes('only admin can') ||
-    lowerMessage.includes('permission') ||
-    lowerMessage.includes('access denied')
-  ) {
-    return {
-      title: 'Service Error',
-      message: 'Unable to complete the request. Please try again or contact support.',
       isAuthError: false,
     };
   }

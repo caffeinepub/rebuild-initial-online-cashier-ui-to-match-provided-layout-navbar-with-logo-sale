@@ -14,14 +14,22 @@ export class ExternalBlob {
     static fromBytes(blob: Uint8Array<ArrayBuffer>): ExternalBlob;
     withUploadProgress(onProgress: (percentage: number) => void): ExternalBlob;
 }
-export interface SaleItem {
-    cogs: bigint;
-    productId: bigint;
-    productName: string;
-    quantity: bigint;
-    unitPrice: bigint;
+export interface UserProfile {
+    name: string;
 }
 export type Time = bigint;
+export interface ExpenseRecord {
+    id: bigint;
+    total: bigint;
+    nominalAmount: bigint;
+    date: string;
+    item: string;
+    createdAt: Time;
+    picName: string;
+    quantity: bigint;
+    category: string;
+    monthYear: string;
+}
 export interface DashboardSummary {
     paymentMethodTotals: PaymentMethodTotals;
     todayRevenue: bigint;
@@ -67,6 +75,13 @@ export interface InventoryReportEntry {
     itemSize: string;
     quantity: bigint;
 }
+export interface SaleItem {
+    cogs: bigint;
+    productId: bigint;
+    productName: string;
+    quantity: bigint;
+    unitPrice: bigint;
+}
 export interface Product {
     id: bigint;
     hpp: bigint;
@@ -93,6 +108,7 @@ export enum UserRole {
 }
 export interface backendInterface {
     addCashTransaction(amount: bigint, transactionType: TransactionType, description: string): Promise<bigint>;
+    addExpenseRecord(date: string, monthYear: string, item: string, category: string, nominalAmount: bigint, quantity: bigint, total: bigint, picName: string): Promise<bigint>;
     addInventoryItem(itemName: string, category: string, size: string, unit: string, initialStock: bigint, reject: bigint, finalStock: bigint, minimumStock: bigint): Promise<bigint | null>;
     addProduct(name: string, size: string, category: string, salePrice: bigint, hpp: bigint, image: ExternalBlob): Promise<bigint>;
     adjustInventoryStock(itemId: bigint, quantity: bigint, isAddition: boolean, description: string): Promise<boolean>;
@@ -101,17 +117,21 @@ export interface backendInterface {
     deleteSale(id: bigint): Promise<boolean>;
     fetchDashboardSummary(): Promise<DashboardSummary>;
     getAllCashTransactions(): Promise<Array<CashTransaction>>;
+    getCallerUserProfile(): Promise<UserProfile | null>;
     getCallerUserRole(): Promise<UserRole>;
     getCashBalance(): Promise<bigint>;
     getCashTransactionsByDate(startDate: Time, endDate: Time): Promise<Array<CashTransaction>>;
+    getExpenseRecords(): Promise<Array<ExpenseRecord>>;
     getInventoryReports(filter: string | null, daysBack: bigint | null): Promise<Array<InventoryReportEntry>>;
     getInventoryUsageStats(category: string | null, size: string | null, fromTimestamp: Time | null, toTimestamp: Time | null): Promise<bigint>;
+    getUserProfile(user: Principal): Promise<UserProfile | null>;
     isCallerAdmin(): Promise<boolean>;
     isInventoryLow(): Promise<boolean>;
     listInventoryItems(): Promise<Array<InventoryItem>>;
     listProducts(): Promise<Array<Product>>;
     querySales(fromTimestamp: Time, toTimestamp: Time): Promise<Array<SaleRecord>>;
     recordSale(items: Array<SaleItem>, paymentMethod: PaymentMethod, totalTax: bigint): Promise<bigint>;
+    saveCallerUserProfile(profile: UserProfile): Promise<void>;
     updateCashTransaction(id: bigint, amount: bigint, transactionType: TransactionType, description: string): Promise<boolean>;
     updateInventoryItem(id: bigint, itemName: string, category: string, size: string, unit: string, initialStock: bigint, reject: bigint, finalStock: bigint, minimumStock: bigint): Promise<boolean>;
     updateSale(id: bigint, items: Array<SaleItem>, paymentMethod: PaymentMethod, totalTax: bigint): Promise<boolean>;

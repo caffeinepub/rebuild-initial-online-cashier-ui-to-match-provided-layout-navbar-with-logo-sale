@@ -1,24 +1,98 @@
 {
   "kind": "coverage_report",
   "version": "1.0",
-  "generatedAt": "2026-02-17T02:11:03.137Z",
+  "generatedAt": "2026-02-18T00:52:53.301Z",
   "sources": {
     "buildRequest": true,
     "implementationPlan": true
   },
   "requirements": {
-    "total": 1,
-    "implemented": 1,
+    "total": 3,
+    "implemented": 3,
     "items": [
       {
         "id": "REQ-1",
-        "summary": "Update the reminder/low-stock warning background color to be lighter and brighter than the current design by adjusting the low-stock theme tokens used for the banner and low-stock table-row highlights.",
+        "summary": "Stop using the anonymous (public) actor for protected backend calls and instead use the authenticated actor for all menu pages that read/write data (Dashboard, Products, Inventory, Transactions, Expenses, and all Reports), so backend permission checks no longer trap and users can load/save data normally.",
         "status": "implemented",
         "plannedFiles": [
-          "frontend/src/index.css"
+          "frontend/src/hooks/useDashboardSummary.ts",
+          "frontend/src/hooks/useExpenses.ts",
+          "frontend/src/hooks/useProducts.ts",
+          "frontend/src/hooks/useInventory.ts",
+          "frontend/src/hooks/useSalesReport.ts",
+          "frontend/src/hooks/useInventoryReport.ts",
+          "frontend/src/hooks/useRecordSale.ts",
+          "frontend/src/hooks/useSalesMutations.ts",
+          "frontend/src/hooks/useCallerRole.ts",
+          "frontend/src/components/Dashboard.tsx",
+          "frontend/src/components/ProductsPage.tsx",
+          "frontend/src/components/InventoryPage.tsx",
+          "frontend/src/components/TransactionPage.tsx",
+          "frontend/src/components/ExpensesPage.tsx",
+          "frontend/src/components/SalesReportPage.tsx",
+          "frontend/src/components/InventoryReportPage.tsx",
+          "frontend/src/components/ExpenseReportPage.tsx"
         ],
         "matchedFiles": [
-          "frontend/src/index.css"
+          "frontend/src/hooks/useDashboardSummary.ts",
+          "frontend/src/hooks/useExpenses.ts",
+          "frontend/src/hooks/useProducts.ts",
+          "frontend/src/hooks/useInventory.ts",
+          "frontend/src/hooks/useSalesReport.ts",
+          "frontend/src/hooks/useInventoryReport.ts",
+          "frontend/src/hooks/useRecordSale.ts",
+          "frontend/src/hooks/useSalesMutations.ts",
+          "frontend/src/hooks/useCallerRole.ts",
+          "frontend/src/components/Dashboard.tsx",
+          "frontend/src/components/ProductsPage.tsx",
+          "frontend/src/components/InventoryPage.tsx",
+          "frontend/src/components/TransactionPage.tsx",
+          "frontend/src/components/ExpensesPage.tsx",
+          "frontend/src/components/SalesReportPage.tsx",
+          "frontend/src/components/InventoryReportPage.tsx",
+          "frontend/src/components/ExpenseReportPage.tsx"
+        ]
+      },
+      {
+        "id": "REQ-2",
+        "summary": "Add explicit UI handling for authorization failures: detect backend 'Unauthorized'/'Only users can...'/'Only admins can...' errors, classify them as authentication/authorization errors, and show a clear English message prompting the user to sign in (and/or indicating insufficient permissions) instead of the generic 'Service Error' message.",
+        "status": "implemented",
+        "plannedFiles": [
+          "frontend/src/utils/errorMessage.ts",
+          "frontend/src/components/QueryErrorState.tsx"
+        ],
+        "matchedFiles": [
+          "frontend/src/utils/errorMessage.ts",
+          "frontend/src/components/QueryErrorState.tsx"
+        ]
+      },
+      {
+        "id": "REQ-3",
+        "summary": "Ensure the app can recover from transient actor initialization issues by providing a reliable retry path: retry should recreate/refetch the actor and then refetch the failed query/mutation, so users can resolve temporary 'Actor not available/Service not ready' states without a full page refresh.",
+        "status": "implemented",
+        "plannedFiles": [
+          "frontend/src/hooks/useInvalidateActorQueries.ts",
+          "frontend/src/utils/errorMessage.ts",
+          "frontend/src/components/Dashboard.tsx",
+          "frontend/src/components/ProductsPage.tsx",
+          "frontend/src/components/InventoryPage.tsx",
+          "frontend/src/components/TransactionPage.tsx",
+          "frontend/src/components/SalesReportPage.tsx",
+          "frontend/src/components/InventoryReportPage.tsx",
+          "frontend/src/components/ExpenseReportPage.tsx",
+          "frontend/src/components/ExpensesPage.tsx"
+        ],
+        "matchedFiles": [
+          "frontend/src/hooks/useInvalidateActorQueries.ts",
+          "frontend/src/utils/errorMessage.ts",
+          "frontend/src/components/Dashboard.tsx",
+          "frontend/src/components/ProductsPage.tsx",
+          "frontend/src/components/InventoryPage.tsx",
+          "frontend/src/components/TransactionPage.tsx",
+          "frontend/src/components/SalesReportPage.tsx",
+          "frontend/src/components/InventoryReportPage.tsx",
+          "frontend/src/components/ExpenseReportPage.tsx",
+          "frontend/src/components/ExpensesPage.tsx"
         ]
       }
     ]
@@ -28,7 +102,26 @@
     "feature_evidence.json",
     "frontend-file-summaries.txt",
     "frontend-implementation-plan.json",
-    "frontend/src/index.css",
+    "frontend/src/components/Dashboard.tsx",
+    "frontend/src/components/ExpenseReportPage.tsx",
+    "frontend/src/components/ExpensesPage.tsx",
+    "frontend/src/components/InventoryPage.tsx",
+    "frontend/src/components/InventoryReportPage.tsx",
+    "frontend/src/components/ProductsPage.tsx",
+    "frontend/src/components/QueryErrorState.tsx",
+    "frontend/src/components/SalesReportPage.tsx",
+    "frontend/src/components/TransactionPage.tsx",
+    "frontend/src/hooks/useCallerRole.ts",
+    "frontend/src/hooks/useDashboardSummary.ts",
+    "frontend/src/hooks/useExpenses.ts",
+    "frontend/src/hooks/useInvalidateActorQueries.ts",
+    "frontend/src/hooks/useInventory.ts",
+    "frontend/src/hooks/useInventoryReport.ts",
+    "frontend/src/hooks/useProducts.ts",
+    "frontend/src/hooks/useRecordSale.ts",
+    "frontend/src/hooks/useSalesMutations.ts",
+    "frontend/src/hooks/useSalesReport.ts",
+    "frontend/src/utils/errorMessage.ts",
     "project_state.json",
     "scratch/component-selection.json",
     "spec.md",

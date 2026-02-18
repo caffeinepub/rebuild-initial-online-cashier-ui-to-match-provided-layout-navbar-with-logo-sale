@@ -2,10 +2,26 @@
   "kind": "feature_evidence_report",
   "features": [
     {
-      "featureId": "feature-update-the-reminder-low-stock-warning-background-color-to-be-lighter-and-brighter-than-the-current-design-by-adjusting-the-low-stock-theme-tokens-used-for-the-banner-and-low-stock-table-row-highlights",
-      "featureTitle": "Update the reminder/low-stock warning background color to be lighter and brighter than the current design by adjusting the low-stock theme tokens used for the banner and low-stock table-row highlights.",
+      "featureId": "feature-stop-using-the-anonymous-public-actor-for-protected-backend-calls-and-instead-use-the-authenticated-actor-for-all-menu-pages-that-read-write-data-dashboard-products-inventory-transactions-expenses-and-all-reports-so-backend-permission-checks-no-longer-trap-and-users-can-load-save-data-normally",
+      "featureTitle": "Stop using the anonymous (public) actor for protected backend calls and instead use the authenticated actor for all menu pages that read/write data (Dashboard, Products, Inventory, Transactions, Expenses, and all Reports), so backend permission checks no longer trap and users can load/save data normally.",
       "files": [
-        "frontend/src/index.css"
+        "frontend/src/components/Dashboard.tsx",
+        "frontend/src/components/ExpenseReportPage.tsx",
+        "frontend/src/components/ExpensesPage.tsx",
+        "frontend/src/components/InventoryPage.tsx",
+        "frontend/src/components/InventoryReportPage.tsx",
+        "frontend/src/components/ProductsPage.tsx",
+        "frontend/src/components/SalesReportPage.tsx",
+        "frontend/src/components/TransactionPage.tsx",
+        "frontend/src/hooks/useCallerRole.ts",
+        "frontend/src/hooks/useDashboardSummary.ts",
+        "frontend/src/hooks/useExpenses.ts",
+        "frontend/src/hooks/useInventory.ts",
+        "frontend/src/hooks/useInventoryReport.ts",
+        "frontend/src/hooks/useProducts.ts",
+        "frontend/src/hooks/useRecordSale.ts",
+        "frontend/src/hooks/useSalesMutations.ts",
+        "frontend/src/hooks/useSalesReport.ts"
       ],
       "components": [
         "core-infrastructure@1.0.2",
@@ -18,6 +34,56 @@
       ],
       "testIds": [
         "REQ-1"
+      ],
+      "confidence": "high"
+    },
+    {
+      "featureId": "feature-add-explicit-ui-handling-for-authorization-failures-detect-backend-unauthorized-only-users-can-only-admins-can-errors-classify-them-as-authentication-authorization-errors-and-show-a-clear-english-message-prompting-the-user-to-sign-in-and-or-indicating-insufficient-permissions-instead-of-the-generic-service-error-message",
+      "featureTitle": "Add explicit UI handling for authorization failures: detect backend 'Unauthorized'/'Only users can...'/'Only admins can...' errors, classify them as authentication/authorization errors, and show a clear English message prompting the user to sign in (and/or indicating insufficient permissions) instead of the generic 'Service Error' message.",
+      "files": [
+        "frontend/src/components/QueryErrorState.tsx",
+        "frontend/src/utils/errorMessage.ts"
+      ],
+      "components": [
+        "core-infrastructure@1.0.2",
+        "shadcn-ui@1.0.0",
+        "build-template-react@1.0.0",
+        "initial-app@1.0.0",
+        "github-export-icp-cli@1.0.0",
+        "blob-storage@4.0.0",
+        "authorization@4.0.0"
+      ],
+      "testIds": [
+        "REQ-2"
+      ],
+      "confidence": "high"
+    },
+    {
+      "featureId": "feature-ensure-the-app-can-recover-from-transient-actor-initialization-issues-by-providing-a-reliable-retry-path-retry-should-recreate-refetch-the-actor-and-then-refetch-the-failed-query-mutation-so-users-can-resolve-temporary-actor-not-available-service-not-ready-states-without-a-full-page-refresh",
+      "featureTitle": "Ensure the app can recover from transient actor initialization issues by providing a reliable retry path: retry should recreate/refetch the actor and then refetch the failed query/mutation, so users can resolve temporary 'Actor not available/Service not ready' states without a full page refresh.",
+      "files": [
+        "frontend/src/components/Dashboard.tsx",
+        "frontend/src/components/ExpenseReportPage.tsx",
+        "frontend/src/components/ExpensesPage.tsx",
+        "frontend/src/components/InventoryPage.tsx",
+        "frontend/src/components/InventoryReportPage.tsx",
+        "frontend/src/components/ProductsPage.tsx",
+        "frontend/src/components/SalesReportPage.tsx",
+        "frontend/src/components/TransactionPage.tsx",
+        "frontend/src/hooks/useInvalidateActorQueries.ts",
+        "frontend/src/utils/errorMessage.ts"
+      ],
+      "components": [
+        "core-infrastructure@1.0.2",
+        "shadcn-ui@1.0.0",
+        "build-template-react@1.0.0",
+        "initial-app@1.0.0",
+        "github-export-icp-cli@1.0.0",
+        "blob-storage@4.0.0",
+        "authorization@4.0.0"
+      ],
+      "testIds": [
+        "REQ-3"
       ],
       "confidence": "high"
     }

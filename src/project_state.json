@@ -3,27 +3,39 @@
   "projectStateVersion": 3,
   "summary": "New project",
   "architectural_notes": [],
-  "known_issues": [],
-  "isFixRequest": false,
+  "known_issues": [
+    "All menus cannot export/output data; users see: \"Service Error — Unable to complete the request. Please try again or contact support.\"",
+    "Deployment/build failed due to a language model snag; last build didn’t go through and requires rerun."
+  ],
+  "isFixRequest": true,
   "existing_features": [
     {
-      "id": "feature-update-the-reminder-low-stock-warning-background-color-to-be-lighter-and-brighter-than-the-current-design-by-adjusting-the-low-stock-theme-tokens-used-for-the-banner-and-low-stock-table-row-highlights",
-      "title": "Update the reminder/low-stock warning background color to be lighter and brighter than the current design by adjusting the low-stock theme tokens used for the banner and low-stock table-row highlights.",
+      "id": "feature-stop-using-the-anonymous-public-actor-for-protected-backend-calls-and-instead-use-the-authenticated-actor-for-all-menu-pages-that-read-write-data-dashboard-products-inventory-transactions-expenses-and-all-reports-so-backend-permission-checks-no-longer-trap-and-users-can-load-save-data-normally",
+      "title": "Stop using the anonymous (public) actor for protected backend calls and instead use the authenticated actor for all menu pages that read/write data (Dashboard, Products, Inventory, Transactions, Expenses, and all Reports), so backend permission checks no longer trap and users can load/save data normally.",
       "reqIds": [
         "REQ-1"
       ],
       "version": 1
-    }
-  ],
-  "new_feature_requests": [
+    },
     {
-      "id": "AR-1",
-      "summary": "Make the reminder background color lighter/brighter than the current color",
-      "reqIds": [],
-      "status": "pending"
+      "id": "feature-add-explicit-ui-handling-for-authorization-failures-detect-backend-unauthorized-only-users-can-only-admins-can-errors-classify-them-as-authentication-authorization-errors-and-show-a-clear-english-message-prompting-the-user-to-sign-in-and-or-indicating-insufficient-permissions-instead-of-the-generic-service-error-message",
+      "title": "Add explicit UI handling for authorization failures: detect backend 'Unauthorized'/'Only users can...'/'Only admins can...' errors, classify them as authentication/authorization errors, and show a clear English message prompting the user to sign in (and/or indicating insufficient permissions) instead of the generic 'Service Error' message.",
+      "reqIds": [
+        "REQ-2"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-ensure-the-app-can-recover-from-transient-actor-initialization-issues-by-providing-a-reliable-retry-path-retry-should-recreate-refetch-the-actor-and-then-refetch-the-failed-query-mutation-so-users-can-resolve-temporary-actor-not-available-service-not-ready-states-without-a-full-page-refresh",
+      "title": "Ensure the app can recover from transient actor initialization issues by providing a reliable retry path: retry should recreate/refetch the actor and then refetch the failed query/mutation, so users can resolve temporary 'Actor not available/Service not ready' states without a full page refresh.",
+      "reqIds": [
+        "REQ-3"
+      ],
+      "version": 1
     }
   ],
-  "projectName": "Sales Inventory Dashboard",
+  "new_feature_requests": [],
+  "projectName": "Expense Tracking",
   "clarification_mode": "instant",
   "clarification_rounds": 0
 }

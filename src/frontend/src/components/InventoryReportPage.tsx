@@ -1,18 +1,26 @@
 import { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Loader2, FileText } from 'lucide-react';
 import { useInventoryReport } from '../hooks/useInventoryReport';
-import { useInvalidateActorQueries } from '../hooks/useInvalidateActorQueries';
 import QueryErrorState from './QueryErrorState';
+import { useInvalidateActorQueries } from '../hooks/useInvalidateActorQueries';
+import { useInternetIdentity } from '../hooks/useInternetIdentity';
+import SignInRequiredState from './SignInRequiredState';
 
 export default function InventoryReportPage() {
+  const { identity } = useInternetIdentity();
+  const isAuthenticated = !!identity;
+  
   const [filter, setFilter] = useState<string>('');
-  const [daysBack, setDaysBack] = useState<number>(7);
+  const [daysBack, setDaysBack] = useState<number | null>(null);
 
   const { data: reports, isLoading, error, refetch } = useInventoryReport(
     filter || null,
-    daysBack > 0 ? daysBack : null
+    daysBack
   );
   const { invalidateActorQueries } = useInvalidateActorQueries();
 
@@ -29,43 +37,59 @@ export default function InventoryReportPage() {
     await refetch();
   };
 
+  // Show sign-in required if not authenticated
+  if (!isAuthenticated) {
+    return (
+      <div className="space-y-6">
+        <div>
+          <h1 className="text-3xl font-bold text-foreground">Laporan Inventaris</h1>
+          <p className="text-muted-foreground mt-1">Riwayat perubahan stok inventaris</p>
+        </div>
+        <SignInRequiredState />
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-3xl font-bold text-foreground">Laporan Inventori</h1>
-        <p className="text-muted-foreground mt-1">Lihat riwayat penyesuaian stok inventori</p>
+        <h1 className="text-3xl font-bold text-foreground">Laporan Inventaris</h1>
+        <p className="text-muted-foreground mt-1">Riwayat perubahan stok inventaris</p>
       </div>
 
-      {/* Filters */}
+      {/* Filter Section */}
       <Card>
         <CardHeader>
-          <CardTitle className="text-lg">Filter</CardTitle>
+          <CardTitle>Filter</CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="flex flex-col sm:flex-row gap-4">
-            <div className="flex-1">
-              <label className="text-sm font-medium mb-2 block">Cari Deskripsi</label>
-              <input
+          <div className="grid gap-4 md:grid-cols-2">
+            <div className="space-y-2">
+              <Label htmlFor="filter">Cari Deskripsi</Label>
+              <Input
+                id="filter"
                 type="text"
+                placeholder="Cari berdasarkan deskripsi..."
                 value={filter}
                 onChange={(e) => setFilter(e.target.value)}
-                placeholder="Cari berdasarkan deskripsi..."
-                className="w-full px-3 py-2 border border-input rounded-md bg-background"
               />
             </div>
-            <div className="w-full sm:w-48">
-              <label className="text-sm font-medium mb-2 block">Periode (Hari)</label>
-              <select
-                value={daysBack}
-                onChange={(e) => setDaysBack(Number(e.target.value))}
-                className="w-full px-3 py-2 border border-input rounded-md bg-background"
+            <div className="space-y-2">
+              <Label htmlFor="daysBack">Rentang Waktu</Label>
+              <Select
+                value={daysBack?.toString() || 'all'}
+                onValueChange={(value) => setDaysBack(value === 'all' ? null : parseInt(value))}
               >
-                <option value={7}>7 Hari Terakhir</option>
-                <option value={14}>14 Hari Terakhir</option>
-                <option value={30}>30 Hari Terakhir</option>
-                <option value={90}>90 Hari Terakhir</option>
-                <option value={0}>Semua</option>
-              </select>
+                <SelectTrigger id="daysBack">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Semua</SelectItem>
+                  <SelectItem value="7">7 Hari Terakhir</SelectItem>
+                  <SelectItem value="30">30 Hari Terakhir</SelectItem>
+                  <SelectItem value="90">90 Hari Terakhir</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
           </div>
         </CardContent>
@@ -78,13 +102,16 @@ export default function InventoryReportPage() {
           <p className="text-muted-foreground">Memuat laporan...</p>
         </div>
       ) : error ? (
-        <QueryErrorState error={error} onRetry={handleRetry} />
+        <QueryErrorState
+          error={error}
+          onRetry={handleRetry}
+        />
       ) : !reports || reports.length === 0 ? (
         <div className="border border-border rounded-lg p-12 text-center">
           <FileText className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
-          <p className="text-muted-foreground text-lg mb-2">Tidak ada riwayat</p>
+          <p className="text-muted-foreground text-lg mb-2">Tidak ada data laporan</p>
           <p className="text-muted-foreground text-sm">
-            Belum ada riwayat penyesuaian stok dalam periode yang dipilih.
+            Belum ada perubahan stok yang tercatat.
           </p>
         </div>
       ) : (
@@ -95,16 +122,18 @@ export default function InventoryReportPage() {
                 <TableHeader>
                   <TableRow>
                     <TableHead>Tanggal & Waktu</TableHead>
-                    <TableHead>Nama Barang</TableHead>
+                    <TableHead>Item</TableHead>
                     <TableHead>Ukuran</TableHead>
-                    <TableHead className="text-right">Jumlah</TableHead>
+                    <TableHead className="text-right">Quantity</TableHead>
                     <TableHead>Deskripsi</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {reports.map((report, index) => (
-                    <TableRow key={index}>
-                      <TableCell>{formatDateTime(report.timestamp)}</TableCell>
+                  {reports.map((report, idx) => (
+                    <TableRow key={idx}>
+                      <TableCell className="whitespace-nowrap">
+                        {formatDateTime(report.timestamp)}
+                      </TableCell>
                       <TableCell className="font-medium">{report.itemName}</TableCell>
                       <TableCell>{report.itemSize}</TableCell>
                       <TableCell className="text-right">{Number(report.quantity)}</TableCell>

@@ -1,5 +1,5 @@
 import { useQuery } from '@tanstack/react-query';
-import { usePublicActor } from './usePublicActor';
+import { useActor } from './useActor';
 import { UserRole } from '../backend';
 
 /**
@@ -22,7 +22,7 @@ import { UserRole } from '../backend';
  * and let backend errors surface through proper error handling (QueryErrorState).
  */
 export function useCallerRole() {
-  const { actor, isFetching: actorFetching } = usePublicActor();
+  const { actor, isFetching: actorFetching } = useActor();
 
   const query = useQuery<UserRole>({
     queryKey: ['callerRole'],

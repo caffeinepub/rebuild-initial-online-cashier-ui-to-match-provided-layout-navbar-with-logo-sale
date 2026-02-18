@@ -1,21 +1,182 @@
 {
   "kind": "implementation_plan",
   "version": "1.0",
-  "title": "Lighten and brighten low-stock reminder background",
+  "title": "Use authenticated actor for protected data calls and improve auth/actor error recovery UX",
   "requirements": [
     {
       "id": "REQ-1",
-      "summary": "Adjust the low-stock theme tokens so the reminder banner and low-stock row highlights use a lighter/brighter background while keeping readable contrast in light and dark mode.",
+      "summary": "Replace anonymous actor usage with the authenticated actor for all data-driven menu pages and their hooks so protected reads/writes succeed when signed in.",
       "acceptanceCriteria": [
-        "On the Dashboard, the low-stock reminder banner background appears visibly lighter/brighter than before.",
-        "Low-stock highlighted rows (e.g., the Dashboard inventory table and the low-stock banner table rows) use the updated lighter/brighter background consistently.",
-        "Text and icons on top of the updated background remain readable with sufficient contrast in both light mode and dark mode."
+        "When signed in with Internet Identity, each page (Dashboard, Products, Inventory, Transactions, Expenses, Sales Report, Inventory Report, Expense Report) successfully loads data instead of showing a generic 'Service Error'.",
+        "Mutations (e.g., add expense, record sale, adjust stock, add inventory/product) complete successfully for a user with the required role, and relevant React Query caches are invalidated/refetched as before.",
+        "No data-fetching hooks for protected methods rely on the anonymous actor path (usePublicActor) anymore."
       ],
       "file_operations": [
         {
-          "path": "frontend/src/index.css",
+          "path": "frontend/src/hooks/useDashboardSummary.ts",
           "operation": "modify",
-          "description": "Update the low-stock warning theme tokens (--warning-low-stock and, if needed for borders, --warning-low-stock-foreground) for both :root and .dark so backgrounds used by LowStockBanner, Dashboard table rows, and InventoryPage low-stock rows render lighter/brighter while maintaining readable contrast. Keep changes limited to token values; do not modify any files under frontend/src/components/ui and do not introduce new non-English user-facing text."
+          "description": "Switch from usePublicActor to useActor for dashboard summary fetching; ensure the query only runs when an authenticated actor is available (and avoid retries that would mask authorization failures)."
+        },
+        {
+          "path": "frontend/src/hooks/useExpenses.ts",
+          "operation": "modify",
+          "description": "Switch expense queries/mutations (getExpenseRecords, addExpenseRecord) from usePublicActor to useActor so protected expense operations use the authenticated actor; keep existing cache invalidation behavior."
+        },
+        {
+          "path": "frontend/src/hooks/useProducts.ts",
+          "operation": "modify",
+          "description": "Switch product list and addProduct mutation from usePublicActor to useActor so product reads/writes use the authenticated actor; keep existing cache invalidation behavior."
+        },
+        {
+          "path": "frontend/src/hooks/useInventory.ts",
+          "operation": "modify",
+          "description": "Switch inventory queries/mutations (listInventoryItems, add/update/adjust stock) from usePublicActor to useActor so inventory management uses the authenticated actor; keep existing cache invalidation behavior."
+        },
+        {
+          "path": "frontend/src/hooks/useSalesReport.ts",
+          "operation": "modify",
+          "description": "Switch sales report querying (querySales) from usePublicActor to useActor so report reads use the authenticated actor; ensure query is disabled until the actor is ready."
+        },
+        {
+          "path": "frontend/src/hooks/useInventoryReport.ts",
+          "operation": "modify",
+          "description": "Switch inventory report querying (getInventoryReports) from usePublicActor to useActor so report reads use the authenticated actor; ensure query is disabled until the actor is ready."
+        },
+        {
+          "path": "frontend/src/hooks/useRecordSale.ts",
+          "operation": "modify",
+          "description": "Switch recordSale mutation from usePublicActor to useActor so recording sales uses the authenticated actor; keep existing dashboard/inventory invalidations."
+        },
+        {
+          "path": "frontend/src/hooks/useSalesMutations.ts",
+          "operation": "modify",
+          "description": "Switch update/delete sale mutations from usePublicActor to useActor so sales mutations use the authenticated actor; keep existing report/dashboard invalidations."
+        },
+        {
+          "path": "frontend/src/hooks/useCallerRole.ts",
+          "operation": "modify",
+          "description": "Switch caller role query from usePublicActor to useActor to avoid relying on the anonymous actor path for protected role reads, while preserving the 'no UI gating' constraints and safe fallback behavior."
+        },
+        {
+          "path": "frontend/src/components/Dashboard.tsx",
+          "operation": "modify",
+          "description": "Gate Dashboard rendering with Internet Identity state: when signed out, show SignInRequiredState instead of attempting protected queries; continue using QueryErrorState for non-auth failures."
+        },
+        {
+          "path": "frontend/src/components/ProductsPage.tsx",
+          "operation": "modify",
+          "description": "Gate Products page rendering with Internet Identity state: when signed out, show SignInRequiredState; keep existing retry wiring for non-auth failures."
+        },
+        {
+          "path": "frontend/src/components/InventoryPage.tsx",
+          "operation": "modify",
+          "description": "Gate Inventory page rendering with Internet Identity state: when signed out, show SignInRequiredState; keep existing retry wiring for non-auth failures."
+        },
+        {
+          "path": "frontend/src/components/TransactionPage.tsx",
+          "operation": "modify",
+          "description": "Gate Transactions page rendering with Internet Identity state: when signed out, show SignInRequiredState; ensure checkout mutation still uses authenticated actor via updated hook."
+        },
+        {
+          "path": "frontend/src/components/ExpensesPage.tsx",
+          "operation": "modify",
+          "description": "Gate Expenses page rendering with Internet Identity state: when signed out, show SignInRequiredState; ensure add-expense mutation uses authenticated actor via updated hook."
+        },
+        {
+          "path": "frontend/src/components/SalesReportPage.tsx",
+          "operation": "modify",
+          "description": "Gate Sales Report page rendering with Internet Identity state: when signed out, show SignInRequiredState; ensure edit/delete flows continue to work using authenticated actor via updated hooks."
+        },
+        {
+          "path": "frontend/src/components/InventoryReportPage.tsx",
+          "operation": "modify",
+          "description": "Gate Inventory Report page rendering with Internet Identity state: when signed out, show SignInRequiredState; keep existing retry wiring for non-auth failures."
+        },
+        {
+          "path": "frontend/src/components/ExpenseReportPage.tsx",
+          "operation": "modify",
+          "description": "Gate Expense Report page rendering with Internet Identity state: when signed out, show SignInRequiredState; keep existing retry wiring for non-auth failures."
+        }
+      ]
+    },
+    {
+      "id": "REQ-2",
+      "summary": "Normalize backend authorization traps into explicit auth/permission UI states (sign-in required vs insufficient permissions) instead of generic 'Service Error'.",
+      "acceptanceCriteria": [
+        "Authorization-related backend errors are normalized to an auth/permission-specific error state (not a generic 'Service Error').",
+        "When the user is signed out and attempts to access a protected page, the UI displays a sign-in required state (or equivalent) rather than repeated retries ending in 'Service Error'.",
+        "When the user is signed in but lacks the required role (e.g., admin-only actions), the UI shows an English 'Insufficient permissions' style message and does not mislabel it as a service outage."
+      ],
+      "file_operations": [
+        {
+          "path": "frontend/src/utils/errorMessage.ts",
+          "operation": "modify",
+          "description": "Update error normalization to classify authorization-related backend trap messages (e.g., 'Unauthorized', 'Only users can...', 'Only admins can...') as auth/permission errors (set isAuthError true) and provide clear English messaging for sign-in required vs insufficient permissions."
+        },
+        {
+          "path": "frontend/src/components/QueryErrorState.tsx",
+          "operation": "modify",
+          "description": "Enhance QueryErrorState to render SignInRequiredState when a normalized error is auth-related and the user is signed out, and to show an English insufficient-permissions message when signed in; keep the existing Retry affordance for non-auth errors. Use the authorization component patterns already present (SignInRequiredState). Verify the component's usage instructions before implementing."
+        }
+      ]
+    },
+    {
+      "id": "REQ-3",
+      "summary": "Make Retry reliably recover from transient actor initialization issues by forcing actor recreation/refetch before re-running failed queries/mutations.",
+      "acceptanceCriteria": [
+        "If the actor is temporarily unavailable, pressing Retry in the error UI results in the actor being refetched/recreated and the failing query being re-run.",
+        "After Retry, pages that previously showed connection/actor errors can successfully load data when the backend is reachable."
+      ],
+      "file_operations": [
+        {
+          "path": "frontend/src/hooks/useInvalidateActorQueries.ts",
+          "operation": "modify",
+          "description": "Strengthen invalidateActorQueries to also actively refetch/reset the actor query (in addition to invalidating it) so Retry can recreate the actor instance; keep it compatible with the immutable useActor implementation."
+        },
+        {
+          "path": "frontend/src/utils/errorMessage.ts",
+          "operation": "modify",
+          "description": "Ensure transient actor initialization issues (e.g., 'Actor not available', 'Service not ready') are consistently normalized as connection/actor errors so the Retry UX is presented appropriately."
+        },
+        {
+          "path": "frontend/src/components/Dashboard.tsx",
+          "operation": "modify",
+          "description": "Confirm Retry wiring uses the improved invalidateActorQueries so the actor is refreshed before refetching the dashboard query (supporting recovery without a full page refresh)."
+        },
+        {
+          "path": "frontend/src/components/ProductsPage.tsx",
+          "operation": "modify",
+          "description": "Confirm Retry wiring uses the improved invalidateActorQueries so the actor is refreshed before refetching products."
+        },
+        {
+          "path": "frontend/src/components/InventoryPage.tsx",
+          "operation": "modify",
+          "description": "Confirm Retry wiring uses the improved invalidateActorQueries so the actor is refreshed before refetching inventory."
+        },
+        {
+          "path": "frontend/src/components/TransactionPage.tsx",
+          "operation": "modify",
+          "description": "Confirm Retry wiring uses the improved invalidateActorQueries so the actor is refreshed before refetching products in the transaction flow."
+        },
+        {
+          "path": "frontend/src/components/SalesReportPage.tsx",
+          "operation": "modify",
+          "description": "Confirm Retry wiring uses the improved invalidateActorQueries so the actor is refreshed before refetching the sales report query."
+        },
+        {
+          "path": "frontend/src/components/InventoryReportPage.tsx",
+          "operation": "modify",
+          "description": "Confirm Retry wiring uses the improved invalidateActorQueries so the actor is refreshed before refetching the inventory report query."
+        },
+        {
+          "path": "frontend/src/components/ExpenseReportPage.tsx",
+          "operation": "modify",
+          "description": "Confirm Retry wiring uses the improved invalidateActorQueries so the actor is refreshed before refetching expense records."
+        },
+        {
+          "path": "frontend/src/components/ExpensesPage.tsx",
+          "operation": "modify",
+          "description": "Confirm Retry wiring (if present on this page’s error UI) uses the improved invalidateActorQueries so transient actor issues can be recovered without a full refresh."
         }
       ]
     }

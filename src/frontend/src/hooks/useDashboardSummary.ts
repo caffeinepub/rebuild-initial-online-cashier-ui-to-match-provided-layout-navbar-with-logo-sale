@@ -1,9 +1,9 @@
 import { useQuery } from '@tanstack/react-query';
-import { usePublicActor } from './usePublicActor';
+import { useActor } from './useActor';
 import type { DashboardSummary } from '../backend';
 
 export function useDashboardSummary() {
-  const { actor, isFetching: actorFetching } = usePublicActor();
+  const { actor, isFetching: actorFetching } = useActor();
 
   return useQuery<DashboardSummary>({
     queryKey: ['dashboardSummary'],
@@ -12,6 +12,6 @@ export function useDashboardSummary() {
       return actor.fetchDashboardSummary();
     },
     enabled: !!actor && !actorFetching,
-    retry: 2,
+    retry: false,
   });
 }

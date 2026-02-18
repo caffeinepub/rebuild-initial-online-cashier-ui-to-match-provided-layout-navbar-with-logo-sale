@@ -7,9 +7,14 @@ import { Loader2 } from 'lucide-react';
 import QueryErrorState from './QueryErrorState';
 import LowStockBanner from './LowStockBanner';
 import { useInvalidateActorQueries } from '../hooks/useInvalidateActorQueries';
-import type { InventoryItem } from '../backend';
+import { isLowStock, filterLowStockItems } from '../utils/lowStock';
+import { useInternetIdentity } from '../hooks/useInternetIdentity';
+import SignInRequiredState from './SignInRequiredState';
 
 export default function Dashboard() {
+  const { identity } = useInternetIdentity();
+  const isAuthenticated = !!identity;
+  
   const { data: summary, isLoading, error, refetch } = useDashboardSummary();
   const { data: inventory, isLoading: inventoryLoading } = useInventory();
   const { invalidateActorQueries } = useInvalidateActorQueries();
@@ -30,15 +35,18 @@ export default function Dashboard() {
     { id: 'trf', label: 'TRF', icon: CreditCard, value: summary?.paymentMethodTotals.trf || BigInt(0) },
   ];
 
-  // Compute low stock items: finalStock <= minimumStock
-  const lowStockItems: InventoryItem[] = inventory?.filter(
-    (item) => Number(item.finalStock) <= Number(item.minimumStock)
-  ) || [];
+  // Compute low stock items using strict comparison: finalStock < minimumStock
+  const lowStockItems = inventory ? filterLowStockItems(inventory) : [];
 
   const handleRetry = async () => {
     await invalidateActorQueries();
     await refetch();
   };
+
+  // Show sign-in required if not authenticated
+  if (!isAuthenticated) {
+    return <SignInRequiredState />;
+  }
 
   if (isLoading) {
     return (
@@ -145,11 +153,11 @@ export default function Dashboard() {
                 </TableHeader>
                 <TableBody>
                   {inventory.map((item) => {
-                    const isLowStock = Number(item.finalStock) <= Number(item.minimumStock);
+                    const itemIsLowStock = isLowStock(item);
                     return (
                       <TableRow
                         key={Number(item.id)}
-                        className={isLowStock ? 'bg-[oklch(var(--warning-low-stock))] hover:bg-[oklch(var(--warning-low-stock))] dark:bg-[oklch(var(--warning-low-stock))] dark:hover:bg-[oklch(var(--warning-low-stock))]' : ''}
+                        className={itemIsLowStock ? 'bg-[oklch(var(--warning-low-stock))] hover:bg-[oklch(var(--warning-low-stock))] dark:bg-[oklch(var(--warning-low-stock))] dark:hover:bg-[oklch(var(--warning-low-stock))]' : ''}
                       >
                         <TableCell className="font-medium">{item.itemName}</TableCell>
                         <TableCell>{item.category}</TableCell>

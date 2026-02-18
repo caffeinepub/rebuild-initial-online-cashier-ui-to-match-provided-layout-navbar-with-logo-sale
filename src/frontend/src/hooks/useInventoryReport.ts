@@ -1,9 +1,9 @@
 import { useQuery } from '@tanstack/react-query';
-import { usePublicActor } from './usePublicActor';
+import { useActor } from './useActor';
 import type { InventoryReportEntry } from '../backend';
 
 export function useInventoryReport(filter: string | null, daysBack: number | null) {
-  const { actor, isFetching: actorFetching } = usePublicActor();
+  const { actor, isFetching: actorFetching } = useActor();
 
   return useQuery<InventoryReportEntry[]>({
     queryKey: ['inventoryReports', filter, daysBack],
@@ -12,6 +12,6 @@ export function useInventoryReport(filter: string | null, daysBack: number | nul
       return actor.getInventoryReports(filter, daysBack !== null ? BigInt(daysBack) : null);
     },
     enabled: !!actor && !actorFetching,
-    retry: 2,
+    retry: false,
   });
 }

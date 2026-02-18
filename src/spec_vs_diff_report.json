@@ -1,23 +1,78 @@
 {
   "kind": "spec_vs_diff_report",
   "version": "1.0",
-  "generatedAt": "2026-02-17T02:11:03.134Z",
-  "summary": "REQ-1 appears implemented by updating the low-stock warning theme tokens in global CSS (light and dark mode), which would make the reminder/banner and low-stock row highlights lighter/brighter assuming they already consume these tokens. No evidence of changes under the read-only shadcn UI directory or any copy changes.",
-  "missing_requirements": [],
-  "hallucinated_features": [
+  "generatedAt": "2026-02-18T00:52:53.297Z",
+  "summary": "Diff implements authenticated-actor usage across several data hooks, adds a shared error normalizer + QueryErrorState auth/permission UI, and adds an actor-query invalidation utility used on Retry for multiple pages. However, coverage for all required pages/paths and mutation retry handling cannot be fully verified from the truncated/omitted diff, and one new role-related hook appears unrequested.",
+  "missing_requirements": [
     {
-      "description": "Updated internal/meta tracking files not requested by the BuildRequest (project state and file summaries).",
-      "reason": "BuildRequest only asks for a styling/token change to make the low-stock background lighter/brighter; it does not request updating project tracking metadata or generated file summaries.",
+      "id": "REQ-1",
+      "requirement": "Stop using the anonymous (public) actor for protected backend calls and instead use the authenticated actor for all menu pages that read/write data (Dashboard, Products, Inventory, Transactions, Expenses, and all Reports).",
+      "reason": "While many hooks shown were updated to use useActor(), the diff does not provide evidence that all protected data-fetching hooks/pages no longer use an anonymous actor path (e.g., usePublicActor), especially given truncated file contents and 2 modified files omitted entirely.",
       "evidence": [
-        "frontend-file-summaries.txt",
-        "project_state.json"
+        "frontend/src/hooks/useDashboardSummary.ts",
+        "frontend/src/hooks/useProducts.ts",
+        "frontend/src/hooks/useInventory.ts",
+        "frontend/src/hooks/useSalesReport.ts",
+        "frontend/src/hooks/useInventoryReport.ts",
+        "frontend/src/hooks/useExpenses.ts",
+        "File diff summary notes: \"Omitted files due to limits: ... modified=2\""
+      ]
+    },
+    {
+      "id": "REQ-3",
+      "requirement": "Ensure the app can recover from transient actor initialization issues by providing a reliable retry path for the failed query/mutation: retry should recreate/refetch the actor and then refetch the failed query/mutation.",
+      "reason": "A retry path is implemented for query-based pages (invalidate actor query + refetch), but the diff does not show an equivalent retry mechanism for failed mutations (e.g., add expense, record sale, add product/inventory, adjust stock). Mutation errors are handled via toasts without a Retry UI that recreates/refetches the actor and retries the mutation.",
+      "evidence": [
+        "frontend/src/hooks/useInvalidateActorQueries.ts",
+        "frontend/src/components/QueryErrorState.tsx",
+        "frontend/src/components/ExpensesPage.tsx (mutation failure handled via toast; no retry flow shown)",
+        "frontend/src/components/TransactionPage.tsx (mutation failure handled via toast; no retry flow shown)",
+        "frontend/src/hooks/useAddExpense in frontend/src/hooks/useExpenses.ts",
+        "frontend/src/hooks/useRecordSale.ts",
+        "frontend/src/hooks/useProducts.ts (useAddProduct)",
+        "frontend/src/hooks/useInventory.ts (useAddInventory/useUpdateInventoryItem/useAdjustInventoryStock)"
       ]
     }
   ],
-  "confidence": 0.74,
+  "hallucinated_features": [
+    {
+      "description": "Added a new hook to fetch and return the caller's role (useCallerRole), including fallback behavior and guidance comments about not using it for UI gating.",
+      "reason": "The BuildRequest does not request adding a new role-fetching hook; it focuses on using the authenticated actor for protected calls and improving auth/transient-error handling.",
+      "evidence": [
+        "frontend/src/hooks/useCallerRole.ts"
+      ]
+    },
+    {
+      "description": "Expanded generic error normalization to include network and timeout error categories beyond authorization and actor-availability issues.",
+      "reason": "REQ-2/REQ-3 focus on auth/permission errors and actor initialization/service readiness errors; network/timeout categorization is additional behavior not explicitly requested.",
+      "evidence": [
+        "frontend/src/utils/errorMessage.ts"
+      ]
+    }
+  ],
+  "confidence": 0.63,
   "changed_files": [
     "frontend-file-summaries.txt",
-    "frontend/src/index.css",
+    "frontend/src/components/Dashboard.tsx",
+    "frontend/src/components/ExpenseReportPage.tsx",
+    "frontend/src/components/ExpensesPage.tsx",
+    "frontend/src/components/InventoryPage.tsx",
+    "frontend/src/components/InventoryReportPage.tsx",
+    "frontend/src/components/ProductsPage.tsx",
+    "frontend/src/components/QueryErrorState.tsx",
+    "frontend/src/components/SalesReportPage.tsx",
+    "frontend/src/components/TransactionPage.tsx",
+    "frontend/src/hooks/useCallerRole.ts",
+    "frontend/src/hooks/useDashboardSummary.ts",
+    "frontend/src/hooks/useExpenses.ts",
+    "frontend/src/hooks/useInvalidateActorQueries.ts",
+    "frontend/src/hooks/useInventory.ts",
+    "frontend/src/hooks/useInventoryReport.ts",
+    "frontend/src/hooks/useProducts.ts",
+    "frontend/src/hooks/useRecordSale.ts",
+    "frontend/src/hooks/useSalesMutations.ts",
+    "frontend/src/hooks/useSalesReport.ts",
+    "frontend/src/utils/errorMessage.ts",
     "project_state.json"
   ]
 }

@@ -1,6 +1,8 @@
 import { Button } from '@/components/ui/button';
 import { AlertCircle } from 'lucide-react';
 import { normalizeErrorMessage } from '../utils/errorMessage';
+import { useInternetIdentity } from '../hooks/useInternetIdentity';
+import SignInRequiredState from './SignInRequiredState';
 
 interface QueryErrorStateProps {
   error: Error | null;
@@ -15,9 +17,30 @@ export default function QueryErrorState({
   title,
   message,
 }: QueryErrorStateProps) {
+  const { identity } = useInternetIdentity();
+  const isAuthenticated = !!identity;
+
   // Normalize error message if not provided
   const normalized = error ? normalizeErrorMessage(error) : null;
   
+  // If it's an auth error and user is not signed in, show sign-in required state
+  if (normalized?.isAuthError && !isAuthenticated) {
+    return <SignInRequiredState />;
+  }
+
+  // If it's an auth error and user IS signed in, show insufficient permissions
+  if (normalized?.isAuthError && isAuthenticated) {
+    return (
+      <div className="border border-destructive/20 bg-destructive/10 rounded-lg p-8 text-center">
+        <AlertCircle className="h-12 w-12 mx-auto text-destructive mb-4" />
+        <h3 className="text-lg font-semibold text-destructive mb-2">Insufficient Permissions</h3>
+        <p className="text-muted-foreground mb-4">
+          You do not have permission to perform this action. Please contact an administrator if you believe this is an error.
+        </p>
+      </div>
+    );
+  }
+
   const displayTitle = title || normalized?.title || 'Error';
   const displayMessage = message || normalized?.message || 'An unexpected error occurred. Please try again.';
 

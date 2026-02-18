@@ -5,12 +5,17 @@ import ProductFormModal from './ProductFormModal';
 import { useProducts } from '../hooks/useProducts';
 import QueryErrorState from './QueryErrorState';
 import { useInvalidateActorQueries } from '../hooks/useInvalidateActorQueries';
+import { useInternetIdentity } from '../hooks/useInternetIdentity';
+import SignInRequiredState from './SignInRequiredState';
 
 interface ProductsPageProps {
   onNavigateDashboard: () => void;
 }
 
 export default function ProductsPage({ onNavigateDashboard }: ProductsPageProps) {
+  const { identity } = useInternetIdentity();
+  const isAuthenticated = !!identity;
+  
   const [isFormOpen, setIsFormOpen] = useState(false);
   const { data: products, isLoading, error, refetch } = useProducts();
   const { invalidateActorQueries } = useInvalidateActorQueries();
@@ -27,6 +32,29 @@ export default function ProductsPage({ onNavigateDashboard }: ProductsPageProps)
     await invalidateActorQueries();
     await refetch();
   };
+
+  // Show sign-in required if not authenticated
+  if (!isAuthenticated) {
+    return (
+      <div className="space-y-6">
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-3xl font-bold text-foreground">Produk</h1>
+            <p className="text-muted-foreground mt-1">Kelola katalog produk Anda</p>
+          </div>
+          <Button
+            variant="outline"
+            onClick={onNavigateDashboard}
+            className="gap-2"
+          >
+            <ArrowLeft className="h-4 w-4" />
+            Kembali ke Dashboard
+          </Button>
+        </div>
+        <SignInRequiredState />
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
